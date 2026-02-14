@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}添加错题 - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>添加错题</h1>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if not subjects %}
+            <div class="alert alert-warning text-center">
+                <h5>还没有创建学科！</h5>
+                <p class="mb-3">请先创建学科，然后再添加错题。</p>
+                <a href="{% url 'subject_create' %}" class="btn btn-primary">立即创建学科</a>
+            </div>
+        {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">题目标题 *</label>
+                    <input type="text" name="title" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">学科 *</label>
+                    <select name="subject" class="form-select" required>
+                        <option value="">请选择学科</option>
+                        {% for subject in subjects %}
+                            <option value="{{ subject.pk }}">{{ subject.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">题干内容 *</label>
+                <textarea name="content" class="form-control" rows="5" required></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">解题过程</label>
+                <textarea name="solution" class="form-control" rows="4"></textarea>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">正确答案</label>
+                    <textarea name="correct_answer" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">我的答案</label>
+                    <textarea name="user_answer" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">错因类型 *</label>
+                    <select name="error_cause" class="form-select" required>
+                        <option value="knowledge">知识性错误</option>
+                        <option value="logic">逻辑性错误</option>
+                        <option value="habit">习惯性错误</option>
+                        <option value="custom">自定义</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">自定义错因</label>
+                    <input type="text" name="custom_error_cause" class="form-control">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">难度</label>
+                    <select name="difficulty" class="form-select">
+                        <option value="1">简单</option>
+                        <option value="2" selected>中等</option>
+                        <option value="3">困难</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">错因分析</label>
+                <textarea name="analysis" class="form-control" rows="4"></textarea>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'mistake_list' %}" class="btn btn-outline-secondary">取消</a>
+                <button type="submit" class="btn btn-primary">保存错题</button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

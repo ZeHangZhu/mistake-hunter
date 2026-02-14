@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}AI辅导 - {{ mistake.title }} - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h1>AI辅导：{{ mistake.title }}</h1>
+        {% if session.is_active %}
+            <a href="{% url 'end_socratic_session' session.pk %}" class="btn btn-danger">结束对话</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">原题回顾</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ mistake.content|truncatechars:300 }}</p>
+                <a href="{% url 'mistake_detail' mistake.pk %}" class="btn btn-outline-primary btn-sm">查看详情</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">对话记录</h5>
+            </div>
+            <div class="card-body chat-container" id="chatContainer">
+                {% for message in messages %}
+                    <div class="chat-message {{ message.role }}">
+                        <div class="chat-bubble {{ message.role }}">
+                            {{ message.content|linebreaks }}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <p>开始和AI对话吧！</p>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if session.is_active %}
+                <div class="card-footer">
+                    <form method="post" id="chatForm">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" name="content" class="form-control" placeholder="输入您的问题..." required>
+                            <button type="submit" class="btn btn-primary">发送</button>
+                        </div>
+                    </form>
+                </div>
+            {% else %}
+                <div class="card-footer text-center text-muted">
+                    对话已结束
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var chatContainer = document.getElementById('chatContainer');
+        if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

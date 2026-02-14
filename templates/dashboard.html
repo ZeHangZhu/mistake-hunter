@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}首页 - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="mb-4">欢迎，{{ user.username }}！</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">错题总数</h5>
+                <h2 class="text-primary">{{ total_mistakes }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">待复习</h5>
+                <h2 class="text-warning">{{ to_review }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">已掌握</h5>
+                <h2 class="text-success">{{ mastered }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">学科数量</h5>
+                <h2 class="text-info">{{ subject_count }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">快捷操作</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'mistake_create' %}" class="btn btn-primary">添加错题</a>
+                    <a href="{% url 'mistake_list' %}" class="btn btn-outline-primary">查看错题本</a>
+                    <a href="{% url 'review_plan' %}" class="btn btn-success">开始复习</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">最近错题</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_mistakes %}
+                    <ul class="list-group list-group-flush">
+                        {% for mistake in recent_mistakes %}
+                            <li class="list-group-item">
+                                <a href="{% url 'mistake_detail' mistake.pk %}">{{ mistake.title }}</a>
+                                <small class="text-muted d-block">{{ mistake.created_at|date:"Y-m-d" }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted text-center">暂无错题</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

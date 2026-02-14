@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}复习计划 - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>今日复习计划</h1>
+        <p class="text-muted">{{ today|date:"Y年m月d日" }}</p>
+    </div>
+</div>
+
+{% if plans %}
+    <div class="row">
+        {% for plan in plans %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card mistake-card difficulty-{{ plan.mistake.difficulty }}">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'mistake_detail' plan.mistake.pk %}">{{ plan.mistake.title }}</a>
+                        </h5>
+                        <p class="card-text text-truncate">{{ plan.mistake.content|truncatechars:100 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ plan.mistake.subject.name }}</small>
+                            <a href="{% url 'review_mistake' plan.mistake.pk %}" class="btn btn-sm btn-success">开始复习</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <h4>太棒了！</h4>
+        <p class="text-muted">今天没有需要复习的错题</p>
+        <a href="{% url 'mistake_list' %}" class="btn btn-primary">查看错题本</a>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}错题本 - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h1>错题本</h1>
+        <a href="{% url 'mistake_create' %}" class="btn btn-primary">添加错题</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <select name="subject" class="form-select">
+                    <option value="">全部学科</option>
+                    {% for subject in subjects %}
+                        <option value="{{ subject.pk }}" {% if request.GET.subject == subject.pk|stringformat:"s" %}selected{% endif %}>{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="error_cause" class="form-select">
+                    <option value="">全部错因</option>
+                    <option value="knowledge" {% if request.GET.error_cause == 'knowledge' %}selected{% endif %}>知识性错误</option>
+                    <option value="logic" {% if request.GET.error_cause == 'logic' %}selected{% endif %}>逻辑性错误</option>
+                    <option value="habit" {% if request.GET.error_cause == 'habit' %}selected{% endif %}>习惯性错误</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="mastery_level" class="form-select">
+                    <option value="">全部状态</option>
+                    <option value="to_review" {% if request.GET.mastery_level == 'to_review' %}selected{% endif %}>待复习</option>
+                    <option value="mastered" {% if request.GET.mastery_level == 'mastered' %}selected{% endif %}>已掌握</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="search" class="form-control" placeholder="搜索..." value="{{ request.GET.search }}">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary me-2">筛选</button>
+                <a href="{% url 'mistake_list' %}" class="btn btn-outline-secondary">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for mistake in mistakes %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card mistake-card difficulty-{{ mistake.difficulty }} {% if mistake.mastery_level == 'mastered' %}mastery-mastered{% else %}mastery-to-review{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{% url 'mistake_detail' mistake.pk %}">{{ mistake.title }}</a>
+                    </h5>
+                    <p class="card-text text-truncate">{{ mistake.content|truncatechars:100 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">{{ mistake.subject.name }}</small>
+                        <span class="badge bg-secondary">{{ mistake.get_error_cause_display }}</span>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">难度: {{ mistake.get_difficulty_display }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <h4>暂无错题</h4>
+                <p class="text-muted">开始添加您的第一道错题吧！</p>
+                <a href="{% url 'mistake_create' %}" class="btn btn-primary">添加错题</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

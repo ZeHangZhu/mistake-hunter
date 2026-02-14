@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}编辑错题 - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>编辑错题</h1>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">题目标题 *</label>
+                    <input type="text" name="title" class="form-control" value="{{ mistake.title }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">学科 *</label>
+                    <select name="subject" class="form-select" required>
+                        {% for subject in subjects %}
+                            <option value="{{ subject.pk }}" {% if mistake.subject.pk == subject.pk %}selected{% endif %}>{{ subject.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">题干内容 *</label>
+                <textarea name="content" class="form-control" rows="5" required>{{ mistake.content }}</textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">解题过程</label>
+                <textarea name="solution" class="form-control" rows="4">{{ mistake.solution }}</textarea>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">正确答案</label>
+                    <textarea name="correct_answer" class="form-control" rows="3">{{ mistake.correct_answer }}</textarea>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">我的答案</label>
+                    <textarea name="user_answer" class="form-control" rows="3">{{ mistake.user_answer }}</textarea>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">错因类型 *</label>
+                    <select name="error_cause" class="form-select" required>
+                        <option value="knowledge" {% if mistake.error_cause == 'knowledge' %}selected{% endif %}>知识性错误</option>
+                        <option value="logic" {% if mistake.error_cause == 'logic' %}selected{% endif %}>逻辑性错误</option>
+                        <option value="habit" {% if mistake.error_cause == 'habit' %}selected{% endif %}>习惯性错误</option>
+                        <option value="custom" {% if mistake.error_cause == 'custom' %}selected{% endif %}>自定义</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">自定义错因</label>
+                    <input type="text" name="custom_error_cause" class="form-control" value="{{ mistake.custom_error_cause }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">难度</label>
+                    <select name="difficulty" class="form-select">
+                        <option value="1" {% if mistake.difficulty == 1 %}selected{% endif %}>简单</option>
+                        <option value="2" {% if mistake.difficulty == 2 %}selected{% endif %}>中等</option>
+                        <option value="3" {% if mistake.difficulty == 3 %}selected{% endif %}>困难</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">错因分析</label>
+                <textarea name="analysis" class="form-control" rows="4">{{ mistake.analysis }}</textarea>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'mistake_detail' mistake.pk %}" class="btn btn-outline-secondary">取消</a>
+                <button type="submit" class="btn btn-primary">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

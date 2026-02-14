@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ mistake.title }} - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h1>{{ mistake.title }}</h1>
+        <div>
+            <a href="{% url 'mistake_edit' mistake.pk %}" class="btn btn-outline-primary me-2">编辑</a>
+            <a href="{% url 'review_mistake' mistake.pk %}" class="btn btn-success me-2">复习</a>
+            <a href="{% url 'socratic_session' mistake.pk %}" class="btn btn-info me-2">AI辅导</a>
+            <a href="{% url 'generate_similar' mistake.pk %}" class="btn btn-warning">生成相似题</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">题干</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ mistake.content|linebreaks }}</p>
+            </div>
+        </div>
+
+        {% if mistake.solution %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">解题过程</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ mistake.solution|linebreaks }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if mistake.correct_answer %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">正确答案</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ mistake.correct_answer|linebreaks }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if mistake.user_answer %}
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">我的答案</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ mistake.user_answer|linebreaks }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if mistake.analysis %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">错因分析</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ mistake.analysis|linebreaks }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if review_records %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">复习记录</h5>
+                </div>
+                <div class="card-body">
+                    {% for record in review_records %}
+                        <div class="mb-3 pb-3 border-bottom">
+                            <div class="d-flex justify-content-between">
+                                <span class="badge {% if record.result == 'mastered' %}bg-success{% else %}bg-warning{% endif %}">{{ record.get_result_display }}</span>
+                                <small class="text-muted">{{ record.reviewed_at|date:"Y-m-d H:i" }}</small>
+                            </div>
+                            {% if record.notes %}
+                                <p class="mt-2 mb-0">{{ record.notes }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">基本信息</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>学科</span>
+                        <span>{{ mistake.subject.name }}</span>
+                    </li>
+                    {% if mistake.group %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>分组</span>
+                            <span>{{ mistake.group.name }}</span>
+                        </li>
+                    {% endif %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>错因</span>
+                        <span>{{ mistake.get_error_cause_display }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>难度</span>
+                        <span>{{ mistake.get_difficulty_display }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>状态</span>
+                        <span class="badge {% if mistake.mastery_level == 'mastered' %}bg-success{% else %}bg-warning{% endif %}">{{ mistake.get_mastery_level_display }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>复习次数</span>
+                        <span>{{ mistake.review_count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>录入时间</span>
+                        <span>{{ mistake.created_at|date:"Y-m-d" }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        {% if mistake.knowledge_points.all %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">知识点</h5>
+                </div>
+                <div class="card-body">
+                    {% for kp in mistake.knowledge_points.all %}
+                        <span class="badge bg-info me-1 mb-1">{{ kp.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'mistake_list' %}" class="btn btn-outline-secondary">返回列表</a>
+    <a href="{% url 'mistake_delete' mistake.pk %}" class="btn btn-danger">删除错题</a>
+</div>
+{% endblock %}

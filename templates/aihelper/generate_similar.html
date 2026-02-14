@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}生成相似题 - {{ mistake.title }} - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>生成相似题</h1>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">原题</h5>
+    </div>
+    <div class="card-body">
+        <h6>{{ mistake.title }}</h6>
+        <p>{{ mistake.content|linebreaks }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <p class="mb-4">点击下方按钮，AI将基于原题的知识点和难度生成相似题目。</p>
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'mistake_detail' mistake.pk %}" class="btn btn-outline-secondary">取消</a>
+                <button type="submit" class="btn btn-primary">生成相似题</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

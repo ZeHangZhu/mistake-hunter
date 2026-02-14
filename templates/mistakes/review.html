@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}复习 - {{ mistake.title }} - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>复习：{{ mistake.title }}</h1>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">题干</h5>
+    </div>
+    <div class="card-body">
+        <p>{{ mistake.content|linebreaks }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">复习结果</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="result" value="mastered" id="mastered" checked>
+                    <label class="form-check-label text-success fw-bold" for="mastered">已掌握</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="result" value="wrong_again" id="wrong_again">
+                    <label class="form-check-label text-danger fw-bold" for="wrong_again">再次错误</label>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">复习笔记</label>
+                <textarea name="notes" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'mistake_detail' mistake.pk %}" class="btn btn-outline-secondary">取消</a>
+                <button type="submit" class="btn btn-primary">提交</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
