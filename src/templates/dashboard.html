@@ -1,82 +1,248 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}首页 - 错题猎手{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="mb-4">欢迎，{{ user.username }}！</h1>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-3 mb-4">
-        <div class="card text-center">
+<!-- 轮播图和公告栏 -->
+<div class="row mb-6">
+    <!-- 左侧：公告栏 -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">公告栏</h5>
+            </div>
             <div class="card-body">
-                <h5 class="card-title">错题总数</h5>
-                <h2 class="text-primary">{{ total_mistakes }}</h2>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="#" class="text-decoration-none text-dark">
+                            <div class="fw-bold">系统更新公告</div>
+                            <small class="text-muted">2026-02-15</small>
+                            <p class="text-truncate mt-1">错题猎手系统已完成更新，新增AI辅导功能...</p>
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="#" class="text-decoration-none text-dark">
+                            <div class="fw-bold">使用指南</div>
+                            <small class="text-muted">2026-02-10</small>
+                            <p class="text-truncate mt-1">如何高效使用错题猎手进行备考复习...</p>
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="#" class="text-decoration-none text-dark">
+                            <div class="fw-bold">功能预告</div>
+                            <small class="text-muted">2026-02-05</small>
+                            <p class="text-truncate mt-1">即将上线的新功能：知识点关联分析...</p>
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
-    <div class="col-md-3 mb-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5 class="card-title">待复习</h5>
-                <h2 class="text-warning">{{ to_review }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5 class="card-title">已掌握</h5>
-                <h2 class="text-success">{{ mastered }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5 class="card-title">学科数量</h5>
-                <h2 class="text-info">{{ subject_count }}</h2>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">快捷操作</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'mistake_create' %}" class="btn btn-primary">添加错题</a>
-                    <a href="{% url 'mistake_list' %}" class="btn btn-outline-primary">查看错题本</a>
-                    <a href="{% url 'review_plan' %}" class="btn btn-success">开始复习</a>
+    <!-- 右侧：轮播图 -->
+    <div class="col-md-8 mb-4">
+        <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel" style="max-height: 400px;">
+            <div class="carousel-inner rounded-3 overflow-hidden shadow-sm" style="max-height: 400px;">
+                <div class="carousel-item active">
+                    <img src="{% static 'img/20260216201408_8_7.png' %}" class="d-block w-100" style="max-height: 400px; object-fit: cover;" alt="图片1">
+                    <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-bottom">
+                        <h3>高效备考，轻松应对考试</h3>
+                        <p>智能错题管理，让学习更有针对性</p>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img src="{% static 'img/20260216201410_9_7.png' %}" class="d-block w-100" style="max-height: 400px; object-fit: cover;" alt="图片2">
+                    <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-bottom">
+                        <h3>智能分析，掌握学习进度</h3>
+                        <p>数据驱动的学习策略，提升学习效率</p>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img src="{% static 'img/20260216201412_10_7.png' %}" class="d-block w-100" style="max-height: 400px; object-fit: cover;" alt="图片3">
+                    <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-bottom">
+                        <h3>个性化复习计划</h3>
+                        <p>科学安排复习时间，巩固知识点</p>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img src="{% static 'img/20260216201415_11_7.png' %}" class="d-block w-100" style="max-height: 400px; object-fit: cover;" alt="图片4">
+                    <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-bottom">
+                        <h3>错题整理，事半功倍</h3>
+                        <p>系统化管理错题，告别无效刷题</p>
+                    </div>
                 </div>
             </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">上一张</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">下一张</span>
+            </button>
         </div>
     </div>
-    <div class="col-md-6 mb-4">
+</div>
+<!-- 统计数据 -->
+<div class="row mb-6">
+    <div class="col-12 mb-3">
+        <h3>学习数据</h3>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card h-100 text-center p-3 bg-primary bg-opacity-10 rounded-4 border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-2">错题总数</h5>
+                <h3 class="text-primary">{{ total_mistakes }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card h-100 text-center p-3 bg-warning bg-opacity-10 rounded-4 border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-2">待复习</h5>
+                <h3 class="text-warning">{{ to_review }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card h-100 text-center p-3 bg-success bg-opacity-10 rounded-4 border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-2">已掌握</h5>
+                <h3 class="text-success">{{ mastered }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card h-100 text-center p-3 bg-info bg-opacity-10 rounded-4 border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-2">学科数量</h5>
+                <h3 class="text-info">{{ subject_count }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 功能卡片 -->
+<div class="row mb-6">
+    <div class="col-12 mb-3">
+        <h3>功能导航</h3>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card h-100 text-center p-3 bg-primary bg-opacity-10 rounded-4 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="mb-2 text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                    </svg>
+                </div>
+                <h5 class="card-title mb-1">添加错题</h5>
+                <p class="text-muted small">快速录入新的错题</p>
+                <a href="{% url 'mistake_create' %}" class="btn btn-primary btn-sm mt-2">立即使用</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card h-100 text-center p-3 bg-success bg-opacity-10 rounded-4 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="mb-2 text-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-book" viewBox="0 0 16 16">
+                        <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687z"/>
+                    </svg>
+                </div>
+                <h5 class="card-title mb-1">错题本</h5>
+                <p class="text-muted small">查看所有错题</p>
+                <a href="{% url 'mistake_list' %}" class="btn btn-success btn-sm mt-2">查看</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card h-100 text-center p-3 bg-warning bg-opacity-10 rounded-4 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="mb-2 text-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-calendar-check" viewBox="0 0 16 16">
+                        <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                    </svg>
+                </div>
+                <h5 class="card-title mb-1">复习计划</h5>
+                <p class="text-muted small">智能复习安排</p>
+                <a href="{% url 'review_plan' %}" class="btn btn-warning btn-sm mt-2">开始</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card h-100 text-center p-3 bg-info bg-opacity-10 rounded-4 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="mb-2 text-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-lightbulb" viewBox="0 0 16 16">
+                        <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2.983 2.983 0 0 0-.453-.618A5.987 5.987 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+                        <path d="M2.05 1.55a.5.5 0 0 1 .65.65l-.364 1.768A6.969 6.969 0 0 0 2 6c0 .628.095 1.213.266 1.763l-.36.18a.5.5 0 0 1-.65-.65z"/>
+                    </svg>
+                </div>
+                <h5 class="card-title mb-1">AI辅导</h5>
+                <p class="text-muted small">智能解题助手</p>
+                <a href="{% url 'socratic_session' 1 %}" class="btn btn-info btn-sm mt-2">体验</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 最近错题 -->
+<div class="row mb-6">
+    <div class="col-12 mb-3">
+        <h3>最近错题</h3>
+    </div>
+    <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">最近错题</h5>
+            <div class="card-header bg-secondary bg-opacity-10">
+                <h5 class="mb-0">最近添加的错题</h5>
             </div>
             <div class="card-body">
                 {% if recent_mistakes %}
-                    <ul class="list-group list-group-flush">
+                    <div class="row">
                         {% for mistake in recent_mistakes %}
-                            <li class="list-group-item">
-                                <a href="{% url 'mistake_detail' mistake.pk %}">{{ mistake.title }}</a>
-                                <small class="text-muted d-block">{{ mistake.created_at|date:"Y-m-d" }}</small>
-                            </li>
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <a href="{% url 'mistake_detail' mistake.pk %}">{{ mistake.title }}</a>
+                                        </h6>
+                                        <p class="text-muted small mb-2">{{ mistake.content|truncatechars:100 }}</p>
+                                        <small class="text-muted">添加时间：{{ mistake.created_at|date:"Y-m-d" }}</small>
+                                    </div>
+                                </div>
+                            </div>
                         {% endfor %}
-                    </ul>
+                    </div>
                 {% else %}
                     <p class="text-muted text-center">暂无错题</p>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 智能复习 -->
+<div class="row mb-6">
+    <div class="col-12 mb-3">
+        <h3>智能复习</h3>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 bg-success bg-opacity-5 rounded-4 border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">高频易错题</h5>
+                <p class="text-muted mb-4">针对你的薄弱环节，智能推荐高频易错题</p>
+                <a href="{% url 'review_plan' %}" class="btn btn-success">开始练习</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 bg-primary bg-opacity-5 rounded-4 border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">错题举一反</h5>
+                <p class="text-muted mb-4">基于你的错题，智能生成相似题目，巩固知识点</p>
+                <a href="{% url 'generate_similar' 1 %}" class="btn btn-primary">开始练习</a>
             </div>
         </div>
     </div>
