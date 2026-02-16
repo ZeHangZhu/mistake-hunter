@@ -50,21 +50,21 @@
 <div class="row">
     {% for mistake in mistakes %}
         <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card mistake-card difficulty-{{ mistake.difficulty }} {% if mistake.mastery_level == 'mastered' %}mastery-mastered{% else %}mastery-to-review{% endif %}">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <a href="{% url 'mistake_detail' mistake.pk %}">{{ mistake.title }}</a>
-                    </h5>
-                    <p class="card-text text-truncate">{{ mistake.content|truncatechars:100 }}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">{{ mistake.subject.name }}</small>
-                        <span class="badge bg-secondary">{{ mistake.get_error_cause_display }}</span>
-                    </div>
-                    <div class="mt-2">
-                        <small class="text-muted">难度: {{ mistake.get_difficulty_display }}</small>
+            <a href="{% url 'mistake_detail' mistake.pk %}" class="text-decoration-none">
+                <div class="card mistake-card difficulty-{{ mistake.difficulty }} {% if mistake.mastery_level == 'mastered' %}mastery-mastered{% else %}mastery-to-review{% endif %}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ mistake.title }}</h5>
+                        <p class="card-text text-truncate">{{ mistake.content|truncatechars:100 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ mistake.subject.name }}</small>
+                            <span class="badge bg-secondary">{{ mistake.get_error_cause_display }}</span>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">难度: {{ mistake.get_difficulty_display }}</small>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     {% empty %}
         <div class="col-12">
