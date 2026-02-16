@@ -10,27 +10,54 @@
     </div>
 </div>
 
-<div class="row">
-    {% for subject in subjects %}
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title d-flex align-items-center">
-                        <span class="badge me-2" style="background-color: {{ subject.color }}; width: 20px; height: 20px; display: inline-block;"></span>
-                        {{ subject.name }}
-                    </h5>
-                    <p class="card-text">错题数: {{ subject.mistakes.count }}</p>
+
+    <div class="row" id="subjects-container">
+        {% for subject in subjects %}
+            <div class="col-md-4 mb-4 subject-item" data-subject-id="{{ subject.pk }}">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title d-flex align-items-center mb-0">
+                                <span class="badge me-2" style="background-color: {{ subject.color }}; width: 20px; height: 20px; display: inline-block;"></span>
+                                {{ subject.name }}
+                            </h5>
+                            <div>
+                                {% if not subject.mistakes.exists %}
+                                    <a href="{% url 'subject_delete' subject.pk %}" class="btn btn-outline-danger btn-sm" onclick="return confirm('确定要删除这个学科吗？');">删除</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="card-text">错题数: {{ subject.mistakes.count }}</p>
+                        {% if subject.mistakes.exists %}
+                            <div class="mt-2">
+                                <small class="text-muted">该学科下有错题，无法删除</small>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-        </div>
-    {% empty %}
-        <div class="col-12">
-            <div class="text-center py-5">
-                <h4>暂无学科</h4>
-                <p class="text-muted">添加您的第一个学科开始使用吧！</p>
-                <a href="{% url 'subject_create' %}" class="btn btn-primary">添加学科</a>
+        {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <h4>暂无学科</h4>
+                    <p class="text-muted">添加您的第一个学科开始使用吧！</p>
+                    <a href="{% url 'subject_create' %}" class="btn btn-primary">添加学科</a>
+                </div>
             </div>
-        </div>
-    {% endfor %}
-</div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 卡片动画 */
+    .card {
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+</style>
 {% endblock %}

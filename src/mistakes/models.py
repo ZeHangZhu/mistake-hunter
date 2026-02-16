@@ -11,6 +11,7 @@ class Subject(models.Model):
         verbose_name='用户'
     )
     color = models.CharField(max_length=7, default='#007bff', verbose_name='主题颜色')
+    order = models.IntegerField(default=0, verbose_name='排序')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
 
@@ -19,6 +20,7 @@ class Subject(models.Model):
         verbose_name = '学科'
         verbose_name_plural = '学科'
         unique_together = ['user', 'name']
+        ordering = ['order', 'created_at']
 
     def __str__(self):
         return self.name

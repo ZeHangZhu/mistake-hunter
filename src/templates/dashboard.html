@@ -89,36 +89,71 @@
         <h3>学习数据</h3>
     </div>
     <div class="col-md-3 col-sm-6 mb-4">
-        <div class="card h-100 text-center p-3 bg-primary bg-opacity-10 rounded-4 border-0 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title mb-2">错题总数</h5>
-                <h3 class="text-primary">{{ total_mistakes }}</h3>
+        <a href="{% url 'mistake_list' %}" class="text-decoration-none">
+            <div class="card h-100 text-center p-3 bg-primary bg-opacity-10 rounded-4 border-0 shadow-sm hover-shadow transition-all duration-300">
+                <div class="card-body">
+                    <div class="mb-2 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-book" viewBox="0 0 16 16">
+                            <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title mb-2">错题总数</h5>
+                    <h3 class="text-primary">{{ total_mistakes }}</h3>
+                    <p class="text-muted small">查看所有错题</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-sm-6 mb-4">
-        <div class="card h-100 text-center p-3 bg-warning bg-opacity-10 rounded-4 border-0 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title mb-2">待复习</h5>
-                <h3 class="text-warning">{{ to_review }}</h3>
+        <a href="{% url 'review_plan' %}" class="text-decoration-none">
+            <div class="card h-100 text-center p-3 bg-warning bg-opacity-10 rounded-4 border-0 shadow-sm hover-shadow transition-all duration-300">
+                <div class="card-body">
+                    <div class="mb-2 text-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-clock" viewBox="0 0 16 16">
+                            <path d="M8 3a.5.5 0 0 1 .5.5V9a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h1.5V3.5A.5.5 0 0 1 8 3z"/>
+                            <path d="M8 1a7 7 0 1 0 4.95 11.95.5.5 0 0 1 .55.44.5.5 0 0 1-.55.44A8 8 0 1 1 8 1z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title mb-2">待复习</h5>
+                    <h3 class="text-warning">{{ to_review }}</h3>
+                    <p class="text-muted small">开始复习计划</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-sm-6 mb-4">
-        <div class="card h-100 text-center p-3 bg-success bg-opacity-10 rounded-4 border-0 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title mb-2">已掌握</h5>
-                <h3 class="text-success">{{ mastered }}</h3>
+        <a href="{% url 'mistake_list' %}" class="text-decoration-none">
+            <div class="card h-100 text-center p-3 bg-success bg-opacity-10 rounded-4 border-0 shadow-sm hover-shadow transition-all duration-300">
+                <div class="card-body">
+                    <div class="mb-2 text-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title mb-2">已掌握</h5>
+                    <h3 class="text-success">{{ mastered }}</h3>
+                    <p class="text-muted small">查看已掌握的错题</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-sm-6 mb-4">
-        <div class="card h-100 text-center p-3 bg-info bg-opacity-10 rounded-4 border-0 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title mb-2">学科数量</h5>
-                <h3 class="text-info">{{ subject_count }}</h3>
+        <a href="{% url 'subject_list' %}" class="text-decoration-none">
+            <div class="card h-100 text-center p-3 bg-info bg-opacity-10 rounded-4 border-0 shadow-sm hover-shadow transition-all duration-300">
+                <div class="card-body">
+                    <div class="mb-2 text-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-bookmarks" viewBox="0 0 16 16">
+                            <path d="M2 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v11.5a.5.5 0 0 1-.777.416L7 13.101l-4.223 2.815A.5.5 0 0 1 2 15.5V4z"/>
+                            <path d="M2 1a1 1 0 0 0-1 1v11.5a.5.5 0 0 0 .777.416L7 13.101l4.223 2.815A.5.5 0 0 0 12 15.5V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1H2z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title mb-2">学科数量</h5>
+                    <h3 class="text-info">{{ subject_count }}</h3>
+                    <p class="text-muted small">管理学科</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
@@ -128,63 +163,67 @@
         <h3>功能导航</h3>
     </div>
     <div class="col-md-3 col-sm-6 mb-4">
-        <div class="card h-100 text-center p-3 bg-primary bg-opacity-10 rounded-4 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="mb-2 text-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                    </svg>
+        <a href="{% url 'mistake_create' %}" class="text-decoration-none">
+            <div class="card h-100 text-center p-3 bg-primary bg-opacity-10 rounded-4 border-0 shadow-sm hover-shadow transition-all duration-300">
+                <div class="card-body">
+                    <div class="mb-2 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title mb-2">添加错题</h5>
+                    <p class="text-muted small">快速录入新的错题</p>
                 </div>
-                <h5 class="card-title mb-1">添加错题</h5>
-                <p class="text-muted small">快速录入新的错题</p>
-                <a href="{% url 'mistake_create' %}" class="btn btn-primary btn-sm mt-2">立即使用</a>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-sm-6 mb-4">
-        <div class="card h-100 text-center p-3 bg-success bg-opacity-10 rounded-4 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="mb-2 text-success">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-book" viewBox="0 0 16 16">
-                        <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687z"/>
-                    </svg>
+        <a href="{% url 'mistake_list' %}" class="text-decoration-none">
+            <div class="card h-100 text-center p-3 bg-success bg-opacity-10 rounded-4 border-0 shadow-sm hover-shadow transition-all duration-300">
+                <div class="card-body">
+                    <div class="mb-2 text-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-book" viewBox="0 0 16 16">
+                            <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title mb-2">错题本</h5>
+                    <p class="text-muted small">查看所有错题</p>
                 </div>
-                <h5 class="card-title mb-1">错题本</h5>
-                <p class="text-muted small">查看所有错题</p>
-                <a href="{% url 'mistake_list' %}" class="btn btn-success btn-sm mt-2">查看</a>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-sm-6 mb-4">
-        <div class="card h-100 text-center p-3 bg-warning bg-opacity-10 rounded-4 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="mb-2 text-warning">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-calendar-check" viewBox="0 0 16 16">
-                        <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
-                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-                    </svg>
+        <a href="{% url 'review_plan' %}" class="text-decoration-none">
+            <div class="card h-100 text-center p-3 bg-warning bg-opacity-10 rounded-4 border-0 shadow-sm hover-shadow transition-all duration-300">
+                <div class="card-body">
+                    <div class="mb-2 text-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-calendar-check" viewBox="0 0 16 16">
+                            <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title mb-2">复习计划</h5>
+                    <p class="text-muted small">智能复习安排</p>
                 </div>
-                <h5 class="card-title mb-1">复习计划</h5>
-                <p class="text-muted small">智能复习安排</p>
-                <a href="{% url 'review_plan' %}" class="btn btn-warning btn-sm mt-2">开始</a>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-sm-6 mb-4">
-        <div class="card h-100 text-center p-3 bg-info bg-opacity-10 rounded-4 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="mb-2 text-info">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-lightbulb" viewBox="0 0 16 16">
-                        <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2.983 2.983 0 0 0-.453-.618A5.987 5.987 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
-                        <path d="M2.05 1.55a.5.5 0 0 1 .65.65l-.364 1.768A6.969 6.969 0 0 0 2 6c0 .628.095 1.213.266 1.763l-.36.18a.5.5 0 0 1-.65-.65z"/>
-                    </svg>
+        <a href="{% url 'socratic_session' 1 %}" class="text-decoration-none">
+            <div class="card h-100 text-center p-3 bg-info bg-opacity-10 rounded-4 border-0 shadow-sm hover-shadow transition-all duration-300">
+                <div class="card-body">
+                    <div class="mb-2 text-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-lightbulb" viewBox="0 0 16 16">
+                            <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2.983 2.983 0 0 0-.453-.618A5.987 5.987 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+                            <path d="M2.05 1.55a.5.5 0 0 1 .65.65l-.364 1.768A6.969 6.969 0 0 0 2 6c0 .628.095 1.213.266 1.763l-.36.18a.5.5 0 0 1-.65-.65z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title mb-2">AI辅导</h5>
+                    <p class="text-muted small">智能解题助手</p>
                 </div>
-                <h5 class="card-title mb-1">AI辅导</h5>
-                <p class="text-muted small">智能解题助手</p>
-                <a href="{% url 'socratic_session' 1 %}" class="btn btn-info btn-sm mt-2">体验</a>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
@@ -203,15 +242,15 @@
                     <div class="row">
                         {% for mistake in recent_mistakes %}
                             <div class="col-md-4 mb-4">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <h6 class="card-title">
-                                            <a href="{% url 'mistake_detail' mistake.pk %}">{{ mistake.title }}</a>
-                                        </h6>
-                                        <p class="text-muted small mb-2">{{ mistake.content|truncatechars:100 }}</p>
-                                        <small class="text-muted">添加时间：{{ mistake.created_at|date:"Y-m-d" }}</small>
+                                <a href="{% url 'mistake_detail' mistake.pk %}" class="text-decoration-none">
+                                    <div class="card h-100 border-0 shadow-sm hover-shadow transition-all duration-300">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-primary">{{ mistake.title }}</h6>
+                                            <p class="text-muted small mb-2">{{ mistake.content|truncatechars:100 }}</p>
+                                            <small class="text-muted">添加时间：{{ mistake.created_at|date:"Y-m-d" }}</small>
+                                        </div>
                                     </div>
-                                </div>
+                                </a>
                             </div>
                         {% endfor %}
                     </div>
@@ -233,7 +272,7 @@
             <div class="card-body">
                 <h5 class="card-title mb-3">高频易错题</h5>
                 <p class="text-muted mb-4">针对你的薄弱环节，智能推荐高频易错题</p>
-                <a href="{% url 'review_plan' %}" class="btn btn-success">开始练习</a>
+                <a href="{% url 'review_plan' %}" class="btn btn-light text-success border-success">开始练习</a>
             </div>
         </div>
     </div>
@@ -242,7 +281,7 @@
             <div class="card-body">
                 <h5 class="card-title mb-3">错题举一反</h5>
                 <p class="text-muted mb-4">基于你的错题，智能生成相似题目，巩固知识点</p>
-                <a href="{% url 'generate_similar' 1 %}" class="btn btn-primary">开始练习</a>
+                <a href="{% url 'generate_similar' 1 %}" class="btn btn-light text-primary border-primary">开始练习</a>
             </div>
         </div>
     </div>

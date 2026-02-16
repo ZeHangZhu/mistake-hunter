@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.utils import timezone
 from datetime import timedelta
 from .models import Subject, Group, KnowledgePoint, Mistake, MistakeImage, ReviewRecord
@@ -164,7 +164,28 @@ def mistake_delete_view(request, pk):
 @login_required
 def subject_list_view(request):
     subjects = Subject.objects.filter(user=request.user)
-    return render(request, 'mistakes/subjects.html', {'subjects': subjects})
+    
+    # 定义默认排序顺序
+    default_order = ['语文', '数学', '英语', '物理', '化学', '生物', '政治', '历史', '地理', '技术', '信息', '通用']
+    
+    # 按规则排序学科
+    def get_subject_order(subject):
+        if subject.name in default_order:
+            return default_order.index(subject.name)
+        else:
+            # 其他学科按首字母排序，放在默认学科后面
+            return len(default_order) + ord(subject.name[0])
+    
+    # 排序学科列表
+    sorted_subjects = sorted(subjects, key=get_subject_order)
+    
+    # 更新数据库中的order字段
+    for index, subject in enumerate(sorted_subjects):
+        if subject.order != index:
+            subject.order = index
+            subject.save()
+    
+    return render(request, 'mistakes/subjects.html', {'subjects': sorted_subjects})
 
 
 @login_required
@@ -176,11 +197,38 @@ def subject_create_view(request):
         if Subject.objects.filter(name=name, user=request.user).exists():
             messages.error(request, '该学科已存在')
         else:
-            Subject.objects.create(name=name, color=color, user=request.user)
+            # 定义默认排序顺序
+            default_order = ['语文', '数学', '英语', '物理', '化学', '生物', '政治', '历史', '地理', '技术', '信息', '通用']
+            
+            # 计算新学科的排序值
+            if name in default_order:
+                order = default_order.index(name)
+            else:
+                # 其他学科按首字母排序，放在默认学科后面
+                order = len(default_order) + ord(name[0])
+            
+            Subject.objects.create(name=name, color=color, user=request.user, order=order)
             messages.success(request, '学科添加成功')
             return redirect('subject_list')
     
     return render(request, 'mistakes/subject_create.html')
+
+
+@login_required
+def subject_delete_view(request, pk):
+    subject = get_object_or_404(Subject, pk=pk, user=request.user)
+    
+    # 检查是否有错题关联
+    if subject.mistakes.exists():
+        messages.error(request, '该学科下还有错题，无法删除')
+        return redirect('subject_list')
+    
+    subject.delete()
+    messages.success(request, '学科删除成功')
+    return redirect('subject_list')
+
+
+
 
 
 @login_required
