@@ -110,6 +110,30 @@ def mistake_create_view(request):
                 image=image_file
             )
         
+        # 处理解题过程图片上传
+        if 'solution_image' in request.FILES:
+            solution_image_file = request.FILES['solution_image']
+            MistakeImage.objects.create(
+                mistake=mistake,
+                image=solution_image_file
+            )
+        
+        # 处理正确答案图片上传
+        if 'correct_answer_image' in request.FILES:
+            correct_answer_image_file = request.FILES['correct_answer_image']
+            MistakeImage.objects.create(
+                mistake=mistake,
+                image=correct_answer_image_file
+            )
+        
+        # 处理我的答案图片上传
+        if 'user_answer_image' in request.FILES:
+            user_answer_image_file = request.FILES['user_answer_image']
+            MistakeImage.objects.create(
+                mistake=mistake,
+                image=user_answer_image_file
+            )
+        
         if knowledge_point_ids:
             mistake.knowledge_points.add(*knowledge_point_ids)
         
@@ -158,6 +182,33 @@ def mistake_edit_view(request, pk):
             MistakeImage.objects.create(
                 mistake=mistake,
                 image=image_file
+            )
+        
+        # 处理解题过程图片上传
+        if 'solution_image' in request.FILES:
+            # 添加新图片
+            solution_image_file = request.FILES['solution_image']
+            MistakeImage.objects.create(
+                mistake=mistake,
+                image=solution_image_file
+            )
+        
+        # 处理正确答案图片上传
+        if 'correct_answer_image' in request.FILES:
+            # 添加新图片
+            correct_answer_image_file = request.FILES['correct_answer_image']
+            MistakeImage.objects.create(
+                mistake=mistake,
+                image=correct_answer_image_file
+            )
+        
+        # 处理我的答案图片上传
+        if 'user_answer_image' in request.FILES:
+            # 添加新图片
+            user_answer_image_file = request.FILES['user_answer_image']
+            MistakeImage.objects.create(
+                mistake=mistake,
+                image=user_answer_image_file
             )
             # 确保content字段不为空
             if not mistake.content:

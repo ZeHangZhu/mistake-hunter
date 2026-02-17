@@ -39,6 +39,13 @@
                     <h5 class="mb-0">解题过程</h5>
                 </div>
                 <div class="card-body">
+                    {% if mistake.images.all %}
+                        <div class="mb-3">
+                            {% for img in mistake.images.all %}
+                                <img src="{{ img.image.url }}" alt="解题过程图片" class="img-fluid rounded">
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                     <p>{{ mistake.solution|linebreaks }}</p>
                 </div>
             </div>
@@ -50,6 +57,13 @@
                     <h5 class="mb-0">正确答案</h5>
                 </div>
                 <div class="card-body">
+                    {% if mistake.images.all %}
+                        <div class="mb-3">
+                            {% for img in mistake.images.all %}
+                                <img src="{{ img.image.url }}" alt="正确答案图片" class="img-fluid rounded">
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                     <p>{{ mistake.correct_answer|linebreaks }}</p>
                 </div>
             </div>
@@ -61,6 +75,13 @@
                     <h5 class="mb-0">我的答案</h5>
                 </div>
                 <div class="card-body">
+                    {% if mistake.images.all %}
+                        <div class="mb-3">
+                            {% for img in mistake.images.all %}
+                                <img src="{{ img.image.url }}" alt="我的答案图片" class="img-fluid rounded">
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                     <p>{{ mistake.user_answer|linebreaks }}</p>
                 </div>
             </div>

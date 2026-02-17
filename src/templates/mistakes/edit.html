@@ -8,15 +8,78 @@
     .img-container {
         max-width: 100%;
         height: 400px;
-        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         border: 1px solid #ddd;
         border-radius: 4px;
+        overflow: hidden;
+    }
+    .img-container img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
     }
     .img-preview {
         width: 100px;
         height: 100px;
         overflow: hidden;
         border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    /* 弹出窗口样式 */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 800px;
+        border-radius: 8px;
+    }
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .modal-body {
+        margin: 20px 0;
+    }
+    .modal-footer {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    /* 已裁剪图片样式 */
+    .cropped-image-container {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+    }
+    .cropped-image {
+        max-width: 100%;
+        height: auto;
         border-radius: 4px;
     }
 </style>
@@ -53,28 +116,133 @@
                 <div class="mb-2">
                     <input type="file" id="imageInput" name="image" accept="image/*" capture="camera" class="form-control">
                 </div>
-                <div class="img-container mb-2">
-                    <img id="image" src="" alt="选择图片">
+                <!-- 已裁剪图片显示区域 -->
+                <div id="croppedImageContainer" class="cropped-image-container" style="display: none;">
+                    <h6>已裁剪图片</h6>
+                    <img id="croppedImage" class="cropped-image" src="" alt="裁剪后的图片">
+                    <div class="mt-2">
+                        <button type="button" id="recropBtn" class="btn btn-sm btn-outline-primary">重新裁剪</button>
+                    </div>
                 </div>
-                <div class="d-flex justify-content-between mb-2">
-                    <button type="button" id="cropBtn" class="btn btn-primary">裁剪图片</button>
-                    <button type="button" id="resetBtn" class="btn btn-secondary">重置</button>
+            </div>
+            
+            <!-- 裁剪弹出窗口 -->
+            <div id="cropModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h5>裁剪图片</h5>
+                    <div class="modal-body">
+                        <div class="img-container mb-2">
+                            <img id="modalImage" src="" alt="选择图片">
+                        </div>
+                        <div class="img-preview"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="cancelCropBtn" class="btn btn-secondary">取消</button>
+                        <button type="button" id="confirmCropBtn" class="btn btn-primary">确认裁剪</button>
+                    </div>
                 </div>
-                <div class="img-preview"></div>
+            </div>
+            
+            <!-- 解题过程裁剪弹出窗口 -->
+            <div id="solutionCropModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h5>裁剪图片</h5>
+                    <div class="modal-body">
+                        <div class="img-container mb-2">
+                            <img id="solutionModalImage" src="" alt="选择图片">
+                        </div>
+                        <div class="img-preview"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="solutionCancelCropBtn" class="btn btn-secondary">取消</button>
+                        <button type="button" id="solutionConfirmCropBtn" class="btn btn-primary">确认裁剪</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 正确答案裁剪弹出窗口 -->
+            <div id="correctAnswerCropModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h5>裁剪图片</h5>
+                    <div class="modal-body">
+                        <div class="img-container mb-2">
+                            <img id="correctAnswerModalImage" src="" alt="选择图片">
+                        </div>
+                        <div class="img-preview"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="correctAnswerCancelCropBtn" class="btn btn-secondary">取消</button>
+                        <button type="button" id="correctAnswerConfirmCropBtn" class="btn btn-primary">确认裁剪</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 我的答案裁剪弹出窗口 -->
+            <div id="userAnswerCropModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h5>裁剪图片</h5>
+                    <div class="modal-body">
+                        <div class="img-container mb-2">
+                            <img id="userAnswerModalImage" src="" alt="选择图片">
+                        </div>
+                        <div class="img-preview"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="userAnswerCancelCropBtn" class="btn btn-secondary">取消</button>
+                        <button type="button" id="userAnswerConfirmCropBtn" class="btn btn-primary">确认裁剪</button>
+                    </div>
+                </div>
             </div>
             
             <div class="mb-3">
                 <label class="form-label">解题过程</label>
+                <div class="mb-2">
+                    <input type="file" id="solutionImageInput" name="solution_image" accept="image/*" capture="camera" class="form-control">
+                </div>
+                <!-- 已裁剪图片显示区域 -->
+                <div id="solutionCroppedImageContainer" class="cropped-image-container" style="display: none;">
+                    <h6>已裁剪图片</h6>
+                    <img id="solutionCroppedImage" class="cropped-image" src="" alt="裁剪后的图片">
+                    <div class="mt-2">
+                        <button type="button" id="solutionRecropBtn" class="btn btn-sm btn-outline-primary">重新裁剪</button>
+                    </div>
+                </div>
                 <textarea name="solution" class="form-control" rows="4">{{ mistake.solution }}</textarea>
             </div>
             
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">正确答案</label>
+                    <div class="mb-2">
+                        <input type="file" id="correctAnswerImageInput" name="correct_answer_image" accept="image/*" capture="camera" class="form-control">
+                    </div>
+                    <!-- 已裁剪图片显示区域 -->
+                    <div id="correctAnswerCroppedImageContainer" class="cropped-image-container" style="display: none;">
+                        <h6>已裁剪图片</h6>
+                        <img id="correctAnswerCroppedImage" class="cropped-image" src="" alt="裁剪后的图片">
+                        <div class="mt-2">
+                            <button type="button" id="correctAnswerRecropBtn" class="btn btn-sm btn-outline-primary">重新裁剪</button>
+                        </div>
+                    </div>
                     <textarea name="correct_answer" class="form-control" rows="3">{{ mistake.correct_answer }}</textarea>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">我的答案</label>
+                    <div class="mb-2">
+                        <input type="file" id="userAnswerImageInput" name="user_answer_image" accept="image/*" capture="camera" class="form-control">
+                    </div>
+                    <!-- 已裁剪图片显示区域 -->
+                    <div id="userAnswerCroppedImageContainer" class="cropped-image-container" style="display: none;">
+                        <h6>已裁剪图片</h6>
+                        <img id="userAnswerCroppedImage" class="cropped-image" src="" alt="裁剪后的图片">
+                        <div class="mt-2">
+                            <button type="button" id="userAnswerRecropBtn" class="btn btn-sm btn-outline-primary">重新裁剪</button>
+                        </div>
+                    </div>
                     <textarea name="user_answer" class="form-control" rows="3">{{ mistake.user_answer }}</textarea>
                 </div>
             </div>
@@ -125,61 +293,166 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var image = document.getElementById('image');
+        // 题干内容图片处理
         var imageInput = document.getElementById('imageInput');
-        var cropBtn = document.getElementById('cropBtn');
-        var resetBtn = document.getElementById('resetBtn');
+        var modal = document.getElementById('cropModal');
+        var modalImage = document.getElementById('modalImage');
+        var closeBtn = document.getElementsByClassName('close')[0];
+        var cancelCropBtn = document.getElementById('cancelCropBtn');
+        var confirmCropBtn = document.getElementById('confirmCropBtn');
+        var recropBtn = document.getElementById('recropBtn');
+        var croppedImageContainer = document.getElementById('croppedImageContainer');
+        var croppedImage = document.getElementById('croppedImage');
         var cropper;
+        var originalFile;
         
-        // 监听文件选择
-        imageInput.addEventListener('change', function(e) {
-            var files = e.target.files;
-            var done = function(url) {
-                image.src = url;
-                if (cropper) {
-                    cropper.destroy();
+        // 解题过程图片处理
+        var solutionImageInput = document.getElementById('solutionImageInput');
+        var solutionModal = document.getElementById('solutionCropModal');
+        var solutionModalImage = document.getElementById('solutionModalImage');
+        var solutionCloseBtn = solutionModal.getElementsByClassName('close')[0];
+        var solutionCancelCropBtn = document.getElementById('solutionCancelCropBtn');
+        var solutionConfirmCropBtn = document.getElementById('solutionConfirmCropBtn');
+        var solutionRecropBtn = document.getElementById('solutionRecropBtn');
+        var solutionCroppedImageContainer = document.getElementById('solutionCroppedImageContainer');
+        var solutionCroppedImage = document.getElementById('solutionCroppedImage');
+        var solutionCropper;
+        var solutionOriginalFile;
+        
+        // 正确答案图片处理
+        var correctAnswerImageInput = document.getElementById('correctAnswerImageInput');
+        var correctAnswerModal = document.getElementById('correctAnswerCropModal');
+        var correctAnswerModalImage = document.getElementById('correctAnswerModalImage');
+        var correctAnswerCloseBtn = correctAnswerModal.getElementsByClassName('close')[0];
+        var correctAnswerCancelCropBtn = document.getElementById('correctAnswerCancelCropBtn');
+        var correctAnswerConfirmCropBtn = document.getElementById('correctAnswerConfirmCropBtn');
+        var correctAnswerRecropBtn = document.getElementById('correctAnswerRecropBtn');
+        var correctAnswerCroppedImageContainer = document.getElementById('correctAnswerCroppedImageContainer');
+        var correctAnswerCroppedImage = document.getElementById('correctAnswerCroppedImage');
+        var correctAnswerCropper;
+        var correctAnswerOriginalFile;
+        
+        // 我的答案图片处理
+        var userAnswerImageInput = document.getElementById('userAnswerImageInput');
+        var userAnswerModal = document.getElementById('userAnswerCropModal');
+        var userAnswerModalImage = document.getElementById('userAnswerModalImage');
+        var userAnswerCloseBtn = userAnswerModal.getElementsByClassName('close')[0];
+        var userAnswerCancelCropBtn = document.getElementById('userAnswerCancelCropBtn');
+        var userAnswerConfirmCropBtn = document.getElementById('userAnswerConfirmCropBtn');
+        var userAnswerRecropBtn = document.getElementById('userAnswerRecropBtn');
+        var userAnswerCroppedImageContainer = document.getElementById('userAnswerCroppedImageContainer');
+        var userAnswerCroppedImage = document.getElementById('userAnswerCroppedImage');
+        var userAnswerCropper;
+        var userAnswerOriginalFile;
+        
+        // 题干内容图片处理函数
+        function initImageCropper(input, modal, modalImage, closeBtn, cancelCropBtn, confirmCropBtn, recropBtn, croppedImageContainer, croppedImage, cropperVar, originalFileVar) {
+            // 监听文件选择
+            input.addEventListener('change', function(e) {
+                var files = e.target.files;
+                if (files && files.length > 0) {
+                    originalFileVar = files[0];
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        modalImage.src = e.target.result;
+                        // 打开裁剪弹出窗口
+                        modal.style.display = 'block';
+                        // 初始化裁剪器
+                        if (cropperVar) {
+                            cropperVar.destroy();
+                        }
+                        cropperVar = new Cropper(modalImage, {
+                            aspectRatio: NaN,
+                            viewMode: 3,
+                            preview: '.img-preview',
+                            autoCropArea: 1.0 // 初始裁剪区域为整个图片
+                        });
+                    };
+                    reader.readAsDataURL(files[0]);
                 }
-                cropper = new Cropper(image, {
-                    aspectRatio: NaN,
-                    viewMode: 3,
-                    preview: '.img-preview'
-                });
-            };
+            });
             
-            if (files && files.length > 0) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    done(e.target.result);
-                };
-                reader.readAsDataURL(files[0]);
-            }
-        });
+            // 关闭弹出窗口
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                if (cropperVar) {
+                    cropperVar.destroy();
+                }
+            });
+            
+            // 取消裁剪
+            cancelCropBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                if (cropperVar) {
+                    cropperVar.destroy();
+                }
+            });
+            
+            // 点击弹出窗口外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                    if (cropperVar) {
+                        cropperVar.destroy();
+                    }
+                }
+            });
+            
+            // 确认裁剪
+            confirmCropBtn.addEventListener('click', function() {
+                if (cropperVar) {
+                    var canvas = cropperVar.getCroppedCanvas({
+                        width: 800,
+                        height: 600
+                    });
+                    canvas.toBlob(function(blob) {
+                        var newFile = new File([blob], 'cropped.jpg', {type: 'image/jpeg'});
+                        var dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(newFile);
+                        input.files = dataTransfer.files;
+                        
+                        // 显示裁剪后的图片
+                        canvas.toDataURL('image/jpeg', 0.9, function(dataUrl) {
+                            croppedImage.src = dataUrl;
+                            croppedImageContainer.style.display = 'block';
+                        });
+                        
+                        // 关闭弹出窗口
+                        modal.style.display = 'none';
+                        cropperVar.destroy();
+                    });
+                }
+            });
+            
+            // 重新裁剪
+            recropBtn.addEventListener('click', function() {
+                if (originalFileVar) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        modalImage.src = e.target.result;
+                        // 打开裁剪弹出窗口
+                        modal.style.display = 'block';
+                        // 初始化裁剪器
+                        if (cropperVar) {
+                            cropperVar.destroy();
+                        }
+                        cropperVar = new Cropper(modalImage, {
+                            aspectRatio: NaN,
+                            viewMode: 3,
+                            preview: '.img-preview',
+                            autoCropArea: 1.0 // 初始裁剪区域为整个图片
+                        });
+                    };
+                    reader.readAsDataURL(originalFileVar);
+                }
+            });
+        }
         
-        // 裁剪按钮点击事件
-        cropBtn.addEventListener('click', function() {
-            if (cropper) {
-                var canvas = cropper.getCroppedCanvas({
-                    width: 800,
-                    height: 600
-                });
-                canvas.toBlob(function(blob) {
-                    var newFile = new File([blob], 'cropped.jpg', {type: 'image/jpeg'});
-                    var dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(newFile);
-                    imageInput.files = dataTransfer.files;
-                    alert('图片裁剪成功！');
-                });
-            }
-        });
-        
-        // 重置按钮点击事件
-        resetBtn.addEventListener('click', function() {
-            if (cropper) {
-                cropper.destroy();
-                image.src = '';
-                imageInput.value = '';
-            }
-        });
+        // 初始化各个图片裁剪器
+        initImageCropper(imageInput, modal, modalImage, closeBtn, cancelCropBtn, confirmCropBtn, recropBtn, croppedImageContainer, croppedImage, cropper, originalFile);
+        initImageCropper(solutionImageInput, solutionModal, solutionModalImage, solutionCloseBtn, solutionCancelCropBtn, solutionConfirmCropBtn, solutionRecropBtn, solutionCroppedImageContainer, solutionCroppedImage, solutionCropper, solutionOriginalFile);
+        initImageCropper(correctAnswerImageInput, correctAnswerModal, correctAnswerModalImage, correctAnswerCloseBtn, correctAnswerCancelCropBtn, correctAnswerConfirmCropBtn, correctAnswerRecropBtn, correctAnswerCroppedImageContainer, correctAnswerCroppedImage, correctAnswerCropper, correctAnswerOriginalFile);
+        initImageCropper(userAnswerImageInput, userAnswerModal, userAnswerModalImage, userAnswerCloseBtn, userAnswerCancelCropBtn, userAnswerConfirmCropBtn, userAnswerRecropBtn, userAnswerCroppedImageContainer, userAnswerCroppedImage, userAnswerCropper, userAnswerOriginalFile);
     });
 </script>
 {% endblock %}
