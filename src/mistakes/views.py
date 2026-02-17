@@ -82,6 +82,10 @@ def mistake_create_view(request):
         if group_id:
             group = get_object_or_404(Group, pk=group_id, user=request.user)
         
+        # 确保content字段不为空
+        if not content and 'image' in request.FILES:
+            content = '图片题目'
+        
         mistake = Mistake.objects.create(
             title=title,
             content=content,
@@ -97,6 +101,14 @@ def mistake_create_view(request):
             user=request.user,
             next_review_at=timezone.now() + timedelta(days=1)
         )
+        
+        # 处理图片上传
+        if 'image' in request.FILES:
+            image_file = request.FILES['image']
+            MistakeImage.objects.create(
+                mistake=mistake,
+                image=image_file
+            )
         
         if knowledge_point_ids:
             mistake.knowledge_points.add(*knowledge_point_ids)
@@ -136,6 +148,20 @@ def mistake_edit_view(request, pk):
             mistake.group = get_object_or_404(Group, pk=group_id, user=request.user)
         else:
             mistake.group = None
+        
+        # 处理图片上传
+        if 'image' in request.FILES:
+            # 删除旧图片
+            mistake.images.all().delete()
+            # 添加新图片
+            image_file = request.FILES['image']
+            MistakeImage.objects.create(
+                mistake=mistake,
+                image=image_file
+            )
+            # 确保content字段不为空
+            if not mistake.content:
+                mistake.content = '图片题目'
         
         mistake.knowledge_points.set(knowledge_point_ids)
         mistake.save()

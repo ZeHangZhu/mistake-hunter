@@ -163,6 +163,22 @@
         <h3>功能导航</h3>
     </div>
     <div class="col-md-3 col-sm-6 mb-4">
+        <a href="{% url 'socratic_session' 1 %}" class="text-decoration-none">
+            <div class="card h-100 text-center p-3 bg-info bg-opacity-10 rounded-4 border-0 shadow-sm hover-shadow transition-all duration-300">
+                <div class="card-body">
+                    <div class="mb-2 text-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-lightbulb" viewBox="0 0 16 16">
+                            <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2.983 2.983 0 0 0-.453-.618A5.987 5.987 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+                            <path d="M2.05 1.55a.5.5 0 0 1 .65.65l-.364 1.768A6.969 6.969 0 0 0 2 6c0 .628.095 1.213.266 1.763l-.36.18a.5.5 0 0 1-.65-.65z"/>
+                        </svg>
+                    </div>
+                    <h5 class="card-title mb-2">AI答疑</h5>
+                    <p class="text-muted small">智能解题助手</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-4">
         <a href="{% url 'mistake_create' %}" class="text-decoration-none">
             <div class="card h-100 text-center p-3 bg-primary bg-opacity-10 rounded-4 border-0 shadow-sm hover-shadow transition-all duration-300">
                 <div class="card-body">
@@ -205,22 +221,6 @@
                     </div>
                     <h5 class="card-title mb-2">复习计划</h5>
                     <p class="text-muted small">智能复习安排</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3 col-sm-6 mb-4">
-        <a href="{% url 'socratic_session' 1 %}" class="text-decoration-none">
-            <div class="card h-100 text-center p-3 bg-info bg-opacity-10 rounded-4 border-0 shadow-sm hover-shadow transition-all duration-300">
-                <div class="card-body">
-                    <div class="mb-2 text-info">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-lightbulb" viewBox="0 0 16 16">
-                            <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2.983 2.983 0 0 0-.453-.618A5.987 5.987 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
-                            <path d="M2.05 1.55a.5.5 0 0 1 .65.65l-.364 1.768A6.969 6.969 0 0 0 2 6c0 .628.095 1.213.266 1.763l-.36.18a.5.5 0 0 1-.65-.65z"/>
-                        </svg>
-                    </div>
-                    <h5 class="card-title mb-2">AI辅导</h5>
-                    <p class="text-muted small">智能解题助手</p>
                 </div>
             </div>
         </a>
