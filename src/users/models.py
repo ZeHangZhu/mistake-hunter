@@ -6,6 +6,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, verbose_name='邮箱')
     is_active = models.BooleanField(default=False, verbose_name='是否激活')
     daily_review_limit = models.IntegerField(default=10, verbose_name='每日复习题目数量')
+    points = models.IntegerField(default=0, verbose_name='积分')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
 

@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
-from .models import Mistake, Subject, Group, KnowledgePoint, MistakeImage, ReviewRecord, ReviewImage
+from .models import Mistake, Subject, Group, KnowledgePoint, MistakeImage, ReviewRecord, ReviewImage, PointsRecord
+from django.db.models import Q
 
 
 @login_required
@@ -342,7 +343,61 @@ def review_mistake_view(request, pk):
         
         mistake.save()
         
-        messages.success(request, '复习记录已保存')
+        # 计算积分奖励
+        total_points = 0
+        now = timezone.now()
+        
+        # 基础复习积分
+        base_points = 5
+        total_points += base_points
+        PointsRecord.objects.create(
+            user=request.user,
+            points=base_points,
+            reason='review',
+            mistake=mistake
+        )
+        
+        # 时间奖励
+        time_diff = now - mistake.next_review_at
+        if time_diff.days <= 0:
+            # 提前或按时复习
+            if time_diff.days == 0:
+                # 按时复习奖励
+                on_time_points = 3
+                total_points += on_time_points
+                PointsRecord.objects.create(
+                    user=request.user,
+                    points=on_time_points,
+                    reason='on_time_review',
+                    mistake=mistake
+                )
+            else:
+                # 提前复习奖励（提前越多奖励越少）
+                early_days = abs(time_diff.days)
+                early_points = max(1, 3 - early_days)
+                total_points += early_points
+                PointsRecord.objects.create(
+                    user=request.user,
+                    points=early_points,
+                    reason='early_review',
+                    mistake=mistake
+                )
+        
+        # 难度奖励
+        difficulty_bonus = mistake.difficulty
+        total_points += difficulty_bonus
+        PointsRecord.objects.create(
+            user=request.user,
+            points=difficulty_bonus,
+            reason='difficulty_bonus',
+            mistake=mistake
+        )
+        
+        # 更新用户积分
+        request.user.points += total_points
+        request.user.save()
+        
+        messages.success(request, f'复习记录已保存，获得 {total_points} 积分！')
         return redirect('mistake_detail', pk=mistake.pk)
     
     return render(request, 'mistakes/review.html', {'mistake': mistake})
@@ -553,3 +608,42 @@ def generate_review_plan_view(request):
             'default_daily_limit': 10
         }
         return render(request, 'mistakes/review_plan.html', context)
+
+
+@login_required
+def review_records_view(request):
+    # 获取当前用户的所有复习记录，按复习时间倒序排列
+    review_records = ReviewRecord.objects.filter(
+        mistake__user=request.user
+    ).prefetch_related('mistake', 'images').order_by('-reviewed_at')
+    
+    context = {
+        'review_records': review_records
+    }
+    return render(request, 'mistakes/review_records.html', context)
+
+
+@login_required
+def points_center_view(request):
+    # 获取用户的积分记录，按创建时间倒序排列
+    points_records = PointsRecord.objects.filter(
+        user=request.user
+    ).prefetch_related('mistake').order_by('-created_at')
+    
+    # 计算积分统计
+    total_points = request.user.points
+    
+    # 按原因统计积分
+    points_by_reason = {}
+    for record in points_records:
+        reason = record.get_reason_display()
+        if reason not in points_by_reason:
+            points_by_reason[reason] = 0
+        points_by_reason[reason] += record.points
+    
+    context = {
+        'total_points': total_points,
+        'points_records': points_records,
+        'points_by_reason': points_by_reason
+    }
+    return render(request, 'mistakes/points_center.html', context)

@@ -39,6 +39,8 @@
                             {{ user.username }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'review_records' %}">复习记录</a></li>
+                            <li><a class="dropdown-item" href="{% url 'points_center' %}">积分中心 ({{ user.points }})</a></li>
                             <li><a class="dropdown-item" href="{% url 'logout' %}">退出登录</a></li>
                         </ul>
                     </li>

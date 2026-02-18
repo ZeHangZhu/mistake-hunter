@@ -240,3 +240,43 @@ class ReviewImage(models.Model):
 
     def __str__(self):
         return f'{self.review_record} - 图片'
+
+
+class PointsRecord(models.Model):
+    REASON_CHOICES = [
+        ('review', '复习题目'),
+        ('on_time_review', '按时复习'),
+        ('early_review', '提前复习'),
+        ('difficulty_bonus', '难度奖励'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='points_records',
+        verbose_name='用户'
+    )
+    points = models.IntegerField(verbose_name='积分变动')
+    reason = models.CharField(
+        max_length=20,
+        choices=REASON_CHOICES,
+        verbose_name='变动原因'
+    )
+    mistake = models.ForeignKey(
+        Mistake,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='points_records',
+        verbose_name='相关错题'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+
+    class Meta:
+        db_table = 'points_records'
+        verbose_name = '积分记录'
+        verbose_name_plural = '积分记录'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.user.username} - {self.points} 积分 - {self.get_reason_display()}'

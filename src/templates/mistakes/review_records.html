@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}复习记录{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">复习记录</h1>
+    
+    {% if review_records %}
+    <div class="list-group">
+        {% for record in review_records %}
+        <div class="list-group-item mb-3 shadow-sm rounded">
+            <div class="d-flex justify-content-between align-items-start">
+                <h5 class="mb-1">
+                    <a href="{% url 'mistake_detail' record.mistake.pk %}" class="text-decoration-none text-primary">
+                        {{ record.mistake.title }}
+                    </a>
+                </h5>
+                <span class="badge {% if record.result == 'mastered' %}bg-success{% else %}bg-danger{% endif %} rounded-pill">
+                    {{ record.get_result_display }}
+                </span>
+            </div>
+            <p class="mb-2 text-muted">学科：{{ record.mistake.subject.name }} | 复习时间：{{ record.reviewed_at|date:'Y-m-d H:i' }}</p>
+            {% if record.notes %}
+            <div class="mb-2">
+                <p class="mb-1"><strong>复习笔记：</strong></p>
+                <p class="text-sm bg-light p-2 rounded">{{ record.notes }}</p>
+            </div>
+            {% endif %}
+            {% if record.images.all %}
+            <div class="mb-2">
+                <p class="mb-1"><strong>复习图片：</strong></p>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for image in record.images.all %}
+                    <img src="{{ image.image.url }}" alt="复习图片" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        暂无复习记录
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
