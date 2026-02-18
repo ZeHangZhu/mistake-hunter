@@ -22,13 +22,14 @@
                 <h5 class="mb-0">题干</h5>
             </div>
             <div class="card-body">
-                <p>{{ mistake.content|linebreaks }}</p>
                 {% if mistake.images.all %}
                     <div class="mt-3">
                         {% for img in mistake.images.all %}
                             <img src="{{ img.image.url }}" alt="错题图片" class="img-fluid rounded">
                         {% endfor %}
                     </div>
+                {% else %}
+                    <p>{{ mistake.content|linebreaks }}</p>
                 {% endif %}
             </div>
         </div>

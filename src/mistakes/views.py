@@ -338,3 +338,210 @@ def review_mistake_view(request, pk):
         return redirect('mistake_detail', pk=mistake.pk)
     
     return render(request, 'mistakes/review.html', {'mistake': mistake})
+
+
+@login_required
+def generate_review_plan_view(request):
+    try:
+        if request.method == 'POST':
+            # 获取每日复习数量，设置默认值为10
+            daily_limit = int(request.POST.get('daily_limit', 10))
+            
+            # 保存设置到用户模型
+            try:
+                request.user.daily_review_limit = daily_limit
+                request.user.save()
+            except Exception as e:
+                print(f"保存用户设置时出错: {e}")
+            
+            # 收集所有待复习的题目（包括所有题目，无论复习时间）
+            now = timezone.now()
+            # 获取所有题目，按复习时间排序，并预加载图片
+            all_mistakes = Mistake.objects.filter(
+                user=request.user
+            ).prefetch_related('images').order_by('next_review_at')  # 优先选择即将到期的
+            
+            # 最多获取每日限制的2倍，确保有足够的题目
+            reviewable_mistakes = list(all_mistakes[:daily_limit * 2])
+            
+            # 计算每道题的优先级分数
+            prioritized_mistakes = []
+            for mistake in reviewable_mistakes:
+                # 基础分数计算
+                priority_score = 0
+                
+                # 1. 基于复习时间的优先级
+                days_overdue = (now - mistake.next_review_at).days
+                if days_overdue > 0:
+                    priority_score += days_overdue * 10
+                else:
+                    # 对于未到复习时间的题目，根据距离复习时间的远近计算分数
+                    days_until_review = (mistake.next_review_at - now).days
+                    priority_score += max(0, 20 - days_until_review * 2)  # 距离越近分数越高
+                
+                # 2. 基于掌握程度的优先级
+                if mistake.mastery_level == 'to_review':
+                    priority_score += 50
+                
+                # 3. 基于难度的优先级
+                priority_score += mistake.difficulty * 10
+                
+                # 4. 基于复习次数的优先级（复习次数少的优先级高）
+                priority_score += (10 - min(mistake.review_count, 10)) * 5
+                
+                prioritized_mistakes.append((priority_score, mistake))
+            
+            # 按优先级分数排序
+            prioritized_mistakes.sort(reverse=True, key=lambda x: x[0])
+            
+            # 生成每日复习计划
+            daily_plan = []
+            subject_count = {}
+            knowledge_point_count = {}
+            
+            for score, mistake in prioritized_mistakes:
+                # 检查是否达到每日上限
+                if len(daily_plan) >= daily_limit:
+                    break
+                
+                # 检查学科均衡性
+                subject_name = mistake.subject.name
+                if subject_count.get(subject_name, 0) >= daily_limit // 3:
+                    continue
+                
+                # 检查知识点均衡性
+                knowledge_points = mistake.knowledge_points.all()
+                kp_skip = False
+                for kp in knowledge_points:
+                    if knowledge_point_count.get(kp.name, 0) >= 3:
+                        kp_skip = True
+                        break
+                if kp_skip:
+                    continue
+                
+                # 添加到复习计划
+                daily_plan.append(mistake)
+                
+                # 更新计数
+                subject_count[subject_name] = subject_count.get(subject_name, 0) + 1
+                for kp in knowledge_points:
+                    knowledge_point_count[kp.name] = knowledge_point_count.get(kp.name, 0) + 1
+            
+            # 如果计划不足，补充一些题目
+            if len(daily_plan) < daily_limit:
+                for score, mistake in prioritized_mistakes:
+                    if len(daily_plan) >= daily_limit:
+                        break
+                    if mistake not in daily_plan:
+                        daily_plan.append(mistake)
+            
+            context = {
+                'daily_plan': daily_plan,
+                'daily_limit': daily_limit,
+                'total_available': len(reviewable_mistakes),
+                'default_daily_limit': daily_limit
+            }
+            return render(request, 'mistakes/review_plan.html', context)
+        
+        # GET请求时，也生成复习计划
+        try:
+            daily_limit = request.user.daily_review_limit
+        except Exception as e:
+            print(f"获取用户设置时出错: {e}")
+            daily_limit = 10
+        
+        # 收集所有待复习的题目（包括所有题目，无论复习时间）
+        now = timezone.now()
+        # 获取所有题目，按复习时间排序，并预加载图片
+        all_mistakes = Mistake.objects.filter(
+            user=request.user
+        ).prefetch_related('images').order_by('next_review_at')  # 优先选择即将到期的
+        
+        # 最多获取每日限制的2倍，确保有足够的题目
+        reviewable_mistakes = list(all_mistakes[:daily_limit * 2])
+        
+        # 计算每道题的优先级分数
+        prioritized_mistakes = []
+        for mistake in reviewable_mistakes:
+            # 基础分数计算
+            priority_score = 0
+            
+            # 1. 基于复习时间的优先级
+            days_overdue = (now - mistake.next_review_at).days
+            if days_overdue > 0:
+                priority_score += days_overdue * 10
+            else:
+                # 对于未到复习时间的题目，根据距离复习时间的远近计算分数
+                days_until_review = (mistake.next_review_at - now).days
+                priority_score += max(0, 20 - days_until_review * 2)  # 距离越近分数越高
+            
+            # 2. 基于掌握程度的优先级
+            if mistake.mastery_level == 'to_review':
+                priority_score += 50
+            
+            # 3. 基于难度的优先级
+            priority_score += mistake.difficulty * 10
+            
+            # 4. 基于复习次数的优先级（复习次数少的优先级高）
+            priority_score += (10 - min(mistake.review_count, 10)) * 5
+            
+            prioritized_mistakes.append((priority_score, mistake))
+        
+        # 按优先级分数排序
+        prioritized_mistakes.sort(reverse=True, key=lambda x: x[0])
+        
+        # 生成每日复习计划
+        daily_plan = []
+        subject_count = {}
+        knowledge_point_count = {}
+        
+        for score, mistake in prioritized_mistakes:
+            # 检查是否达到每日上限
+            if len(daily_plan) >= daily_limit:
+                break
+            
+            # 检查学科均衡性
+            subject_name = mistake.subject.name
+            if subject_count.get(subject_name, 0) >= daily_limit // 3:
+                continue
+            
+            # 检查知识点均衡性
+            knowledge_points = mistake.knowledge_points.all()
+            kp_skip = False
+            for kp in knowledge_points:
+                if knowledge_point_count.get(kp.name, 0) >= 3:
+                    kp_skip = True
+                    break
+            if kp_skip:
+                continue
+            
+            # 添加到复习计划
+            daily_plan.append(mistake)
+            
+            # 更新计数
+            subject_count[subject_name] = subject_count.get(subject_name, 0) + 1
+            for kp in knowledge_points:
+                knowledge_point_count[kp.name] = knowledge_point_count.get(kp.name, 0) + 1
+        
+        # 如果计划不足，补充一些题目
+        if len(daily_plan) < daily_limit:
+            for score, mistake in prioritized_mistakes:
+                if len(daily_plan) >= daily_limit:
+                    break
+                if mistake not in daily_plan:
+                    daily_plan.append(mistake)
+        
+        context = {
+            'daily_plan': daily_plan,
+            'daily_limit': daily_limit,
+            'total_available': len(reviewable_mistakes),
+            'default_daily_limit': daily_limit
+        }
+        return render(request, 'mistakes/review_plan.html', context)
+    except Exception as e:
+        print(f"处理复习计划请求时出错: {e}")
+        # 出错时返回默认值
+        context = {
+            'default_daily_limit': 10
+        }
+        return render(request, 'mistakes/review_plan.html', context)

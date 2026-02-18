@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}复习计划生成{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">复习计划生成</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="h5 mb-0">设置每日复习数量</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'review_plan' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="daily_limit">每日复习题目数量：</label>
+                    <input type="number" class="form-control" id="daily_limit" name="daily_limit" min="1" max="50" value="{{ default_daily_limit|default:10 }}">
+                </div>
+                <button type="submit" class="btn btn-primary">生成复习计划</button>
+            </form>
+        </div>
+    </div>
+    
+    {% if daily_plan %}
+    <div class="card">
+        <div class="card-header">
+            <h2 class="h5 mb-0">今日复习计划</h2>
+        </div>
+        <div class="card-body">
+            <p class="mb-3">
+                计划复习 <strong>{{ daily_plan|length }}</strong> 道题目（每日上限：{{ daily_limit }}）
+                {% if total_available > daily_limit %}
+                ，共有 <strong>{{ total_available }}</strong> 道题目待复习
+                {% endif %}
+            </p>
+            
+            <ul class="list-group">
+                {% for mistake in daily_plan %}
+                <li class="list-group-item mb-2 rounded">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3 class="h6 mb-1">{{ mistake.title }}</h3>
+                            {% if mistake.images.all %}
+                                <div class="mb-2">
+                                    {% for img in mistake.images.all %}
+                                        <img src="{{ img.image.url }}" alt="题目图片" class="img-fluid rounded" style="max-height: 200px;">
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted mb-2">{{ mistake.content|truncatechars:100 }}</p>
+                            {% endif %}
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-primary">{{ mistake.subject.name }}</span>
+                                <span class="badge bg-secondary">难度：{{ mistake.get_difficulty_display }}</span>
+                                <span class="badge bg-info">掌握程度：{{ mistake.get_mastery_level_display }}</span>
+                                <span class="badge bg-success">复习次数：{{ mistake.review_count }}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="{% url 'review_mistake' mistake.pk %}" class="btn btn-sm btn-outline-primary">开始复习</a>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-header">
+            <h2 class="h5 mb-0">复习计划</h2>
+        </div>
+        <div class="card-body">
+            {% if total_available == 0 %}
+            <p class="text-center text-success">太棒了！<br>今天没有需要复习的错题</p>
+            {% else %}
+            <p class="text-center text-muted">请设置每日复习数量并生成复习计划</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
