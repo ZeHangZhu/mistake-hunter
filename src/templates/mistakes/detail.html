@@ -114,6 +114,13 @@
                             {% if record.notes %}
                                 <p class="mt-2 mb-0">{{ record.notes }}</p>
                             {% endif %}
+                            {% if record.images.all %}
+                                <div class="mt-2">
+                                    {% for img in record.images.all %}
+                                        <img src="{{ img.image.url }}" alt="复习笔记图片" class="img-fluid rounded">
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>

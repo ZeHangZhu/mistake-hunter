@@ -221,3 +221,22 @@ class ReviewRecord(models.Model):
 
     def __str__(self):
         return f'{self.mistake.title} - {self.get_result_display()}'
+
+
+class ReviewImage(models.Model):
+    review_record = models.ForeignKey(
+        ReviewRecord,
+        on_delete=models.CASCADE,
+        related_name='images',
+        verbose_name='所属复习记录'
+    )
+    image = models.ImageField(upload_to='review_images/', verbose_name='图片')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+
+    class Meta:
+        db_table = 'review_images'
+        verbose_name = '复习图片'
+        verbose_name_plural = '复习图片'
+
+    def __str__(self):
+        return f'{self.review_record} - 图片'

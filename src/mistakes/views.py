@@ -1,10 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q, Max
 from django.utils import timezone
 from datetime import timedelta
-from .models import Subject, Group, KnowledgePoint, Mistake, MistakeImage, ReviewRecord
+from .models import Mistake, Subject, Group, KnowledgePoint, MistakeImage, ReviewRecord, ReviewImage
 
 
 @login_required
@@ -316,11 +315,20 @@ def review_mistake_view(request, pk):
         result = request.POST.get('result')
         notes = request.POST.get('notes')
         
-        ReviewRecord.objects.create(
+        # 创建复习记录
+        review_record = ReviewRecord.objects.create(
             mistake=mistake,
             result=result,
             notes=notes
         )
+        
+        # 处理复习笔记图片上传
+        if 'notes_image' in request.FILES:
+            notes_image_file = request.FILES['notes_image']
+            ReviewImage.objects.create(
+                review_record=review_record,
+                image=notes_image_file
+            )
         
         mistake.review_count += 1
         mistake.last_reviewed_at = timezone.now()
