@@ -5,6 +5,9 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Mistake, Subject, Group, KnowledgePoint, MistakeImage, ReviewRecord, ReviewImage, PointsRecord
 from django.db.models import Q
+from WebITRTeach import FormulaRecognizer
+import os
+import threading
 
 
 @login_required
@@ -59,6 +62,25 @@ def mistake_detail_view(request, pk):
     return render(request, 'mistakes/detail.html', context)
 
 
+# 初始化FormulaRecognizer
+APPID = "bd6d7a3c"
+APIKey = "ca854ccd4fa3c72a8ea1b0fbf3afac1c"
+Secret = "MTEzNjZlZDZhMTVjYTRiM2NiMmU3YzQz"
+recognizer = FormulaRecognizer(APPID, APIKey, Secret)
+
+# 后台线程处理OCR识别
+def process_ocr_in_background(image_path, mistake_image_id):
+    try:
+        if os.path.exists(image_path):
+            ocr_result = recognizer.recognize(image_path)
+            # 更新数据库
+            mistake_image = MistakeImage.objects.get(pk=mistake_image_id)
+            mistake_image.ocr_text = ocr_result
+            mistake_image.save()
+    except Exception as e:
+        print(f"后台OCR识别失败: {e}")
+
+
 @login_required
 def mistake_create_view(request):
     subjects = Subject.objects.filter(user=request.user)
@@ -105,34 +127,66 @@ def mistake_create_view(request):
         # 处理图片上传
         if 'image' in request.FILES:
             image_file = request.FILES['image']
-            MistakeImage.objects.create(
+            mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
                 image=image_file
             )
+            # 创建后台线程处理OCR识别
+            image_path = os.path.join('media', str(mistake_image.image))
+            thread = threading.Thread(
+                target=process_ocr_in_background,
+                args=(image_path, mistake_image.pk)
+            )
+            thread.daemon = True
+            thread.start()
         
         # 处理解题过程图片上传
         if 'solution_image' in request.FILES:
             solution_image_file = request.FILES['solution_image']
-            MistakeImage.objects.create(
+            mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
                 image=solution_image_file
             )
+            # 创建后台线程处理OCR识别
+            image_path = os.path.join('media', str(mistake_image.image))
+            thread = threading.Thread(
+                target=process_ocr_in_background,
+                args=(image_path, mistake_image.pk)
+            )
+            thread.daemon = True
+            thread.start()
         
         # 处理正确答案图片上传
         if 'correct_answer_image' in request.FILES:
             correct_answer_image_file = request.FILES['correct_answer_image']
-            MistakeImage.objects.create(
+            mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
                 image=correct_answer_image_file
             )
+            # 创建后台线程处理OCR识别
+            image_path = os.path.join('media', str(mistake_image.image))
+            thread = threading.Thread(
+                target=process_ocr_in_background,
+                args=(image_path, mistake_image.pk)
+            )
+            thread.daemon = True
+            thread.start()
         
         # 处理我的答案图片上传
         if 'user_answer_image' in request.FILES:
             user_answer_image_file = request.FILES['user_answer_image']
-            MistakeImage.objects.create(
+            mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
                 image=user_answer_image_file
             )
+            # 创建后台线程处理OCR识别
+            image_path = os.path.join('media', str(mistake_image.image))
+            thread = threading.Thread(
+                target=process_ocr_in_background,
+                args=(image_path, mistake_image.pk)
+            )
+            thread.daemon = True
+            thread.start()
         
         if knowledge_point_ids:
             mistake.knowledge_points.add(*knowledge_point_ids)
@@ -179,37 +233,69 @@ def mistake_edit_view(request, pk):
             mistake.images.all().delete()
             # 添加新图片
             image_file = request.FILES['image']
-            MistakeImage.objects.create(
+            mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
                 image=image_file
             )
+            # 创建后台线程处理OCR识别
+            image_path = os.path.join('media', str(mistake_image.image))
+            thread = threading.Thread(
+                target=process_ocr_in_background,
+                args=(image_path, mistake_image.pk)
+            )
+            thread.daemon = True
+            thread.start()
         
         # 处理解题过程图片上传
         if 'solution_image' in request.FILES:
             # 添加新图片
             solution_image_file = request.FILES['solution_image']
-            MistakeImage.objects.create(
+            mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
                 image=solution_image_file
             )
+            # 创建后台线程处理OCR识别
+            image_path = os.path.join('media', str(mistake_image.image))
+            thread = threading.Thread(
+                target=process_ocr_in_background,
+                args=(image_path, mistake_image.pk)
+            )
+            thread.daemon = True
+            thread.start()
         
         # 处理正确答案图片上传
         if 'correct_answer_image' in request.FILES:
             # 添加新图片
             correct_answer_image_file = request.FILES['correct_answer_image']
-            MistakeImage.objects.create(
+            mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
                 image=correct_answer_image_file
             )
+            # 创建后台线程处理OCR识别
+            image_path = os.path.join('media', str(mistake_image.image))
+            thread = threading.Thread(
+                target=process_ocr_in_background,
+                args=(image_path, mistake_image.pk)
+            )
+            thread.daemon = True
+            thread.start()
         
         # 处理我的答案图片上传
         if 'user_answer_image' in request.FILES:
             # 添加新图片
             user_answer_image_file = request.FILES['user_answer_image']
-            MistakeImage.objects.create(
+            mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
                 image=user_answer_image_file
             )
+            # 创建后台线程处理OCR识别
+            image_path = os.path.join('media', str(mistake_image.image))
+            thread = threading.Thread(
+                target=process_ocr_in_background,
+                args=(image_path, mistake_image.pk)
+            )
+            thread.daemon = True
+            thread.start()
             # 确保content字段不为空
             if not mistake.content:
                 mistake.content = '图片题目'
