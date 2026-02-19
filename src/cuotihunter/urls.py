@@ -26,6 +26,7 @@ urlpatterns = [
     path('', include('users.urls')),
     path('mistakes/', include('mistakes.urls')),
     path('ai/', include('aihelper.urls')),
+    path('ai/chat/', include('chat.urls')),
 ]
 
 if settings.DEBUG:

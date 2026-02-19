@@ -1,0 +1,590 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI 聊天助手{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        overflow: hidden;
+    }
+    .chat-wrapper {
+        height: calc(100vh - 72px);
+        display: flex;
+    }
+    .sidebar {
+        width: 280px;
+        background-color: #343a40;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid #dee2e6;
+    }
+    .sidebar-header {
+        padding: 1rem;
+        border-bottom: 1px solid #495057;
+        background-color: #2d3748;
+    }
+    .conversation-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.5rem;
+    }
+    .conversation-item {
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.25rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .conversation-item:hover {
+        background-color: #495057;
+    }
+    .conversation-item.active {
+        background-color: #2d3748;
+    }
+    .conversation-title {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .delete-btn {
+        opacity: 0;
+        transition: opacity 0.2s;
+        padding: 0.25rem 0.5rem;
+    }
+    .conversation-item:hover .delete-btn {
+        opacity: 1;
+    }
+    .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #f8f9fa;
+    }
+    .chat-header {
+        background-color: #fff;
+        color: #212529;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .messages-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+    }
+    .message {
+        margin-bottom: 1rem;
+        display: flex;
+    }
+    .message.user {
+        justify-content: flex-end;
+    }
+    .message.assistant {
+        justify-content: flex-start;
+    }
+    .message-content {
+        max-width: 75%;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+    }
+    .message.user .message-content {
+        background-color: #007bff;
+        color: white;
+        border-bottom-right-radius: 0.25rem;
+    }
+    .message.assistant .message-content {
+        background-color: white;
+        color: #212529;
+        border-bottom-left-radius: 0.25rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .input-area {
+        padding: 1rem;
+        background-color: white;
+        border-top: 1px solid #dee2e6;
+    }
+    .typing-indicator {
+        display: none;
+        padding: 0.75rem 1rem;
+    }
+    .typing-dots span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #007bff;
+        margin-right: 4px;
+        animation: typing 1.4s infinite;
+    }
+    .typing-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    .typing-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    @keyframes typing {
+        0%, 60%, 100% {
+            opacity: 0.3;
+            transform: translateY(0);
+        }
+        30% {
+            opacity: 1;
+            transform: translateY(-10px);
+        }
+    }
+    .mistake-selector-wrapper {
+        position: relative;
+    }
+    .mistake-selector-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .mistake-dropdown {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        width: 450px;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        box-shadow: 0 -0.5rem 1rem rgba(0,0,0,0.15);
+        max-height: 400px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+    .mistake-dropdown.show {
+        display: block;
+    }
+    .mistake-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.2s;
+    }
+    .mistake-item:hover {
+        background-color: #f8f9fa;
+    }
+    .mistake-item:last-child {
+        border-bottom: none;
+    }
+    .mistake-thumbnail {
+        width: 120px;
+        height: 70px;
+        object-fit: contain;
+        border-radius: 0.25rem;
+        flex-shrink: 0;
+        background-color: #f0f0f0;
+    }
+    .mistake-info {
+        flex: 1;
+        min-width: 0;
+        max-width: 280px;
+    }
+    .mistake-title {
+        font-weight: 500;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .mistake-meta {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    .selected-mistake-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block before_container %}
+<div class="chat-wrapper">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <button id="newChatBtn" class="btn btn-light w-100">
+                <i class="bi bi-plus-lg"></i> 新对话
+            </button>
+        </div>
+        <div class="conversation-list" id="conversationList">
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="chat-header">
+            <h4 class="mb-0">AI 聊天助手</h4>
+        </div>
+        
+        <div class="messages-container" id="messagesContainer">
+            <div class="message assistant">
+                <div class="message-content">
+                    你好！我是AI聊天助手，有什么可以帮助你的吗？
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <div id="selectedMistakeBadge" class="selected-mistake-badge" style="display: none;">
+                <span id="selectedMistakeTitle"></span>
+                <button type="button" class="btn-close btn-close-sm" id="clearMistakeBtn" aria-label="清除"></button>
+            </div>
+            <div class="row g-2">
+                <div class="col-auto">
+                    <div class="mistake-selector-wrapper">
+                        <button id="mistakeSelectorBtn" class="btn btn-outline-secondary mistake-selector-btn">
+                            <i class="bi bi-journal-x"></i> 选择错题
+                        </button>
+                        <div id="mistakeDropdown" class="mistake-dropdown">
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <input type="text" id="messageInput" class="form-control" placeholder="请输入你的问题..." autocomplete="off">
+                </div>
+                <div class="col-auto">
+                    <button id="sendButton" class="btn btn-primary">
+                        <span id="buttonText">发送</span>
+                        <span id="buttonLoading" class="spinner-border spinner-border-sm" role="status" style="display: none;"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="typing-indicator message assistant" id="typingIndicator">
+            <div class="message-content">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block container_class %}d-none{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentConversationId = null;
+    let conversations = [];
+    let selectedMistake = null;
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const buttonText = document.getElementById('buttonText');
+    const buttonLoading = document.getElementById('buttonLoading');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const conversationList = document.getElementById('conversationList');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const mistakeSelectorBtn = document.getElementById('mistakeSelectorBtn');
+    const mistakeDropdown = document.getElementById('mistakeDropdown');
+    const selectedMistakeBadge = document.getElementById('selectedMistakeBadge');
+    const selectedMistakeTitle = document.getElementById('selectedMistakeTitle');
+    const clearMistakeBtn = document.getElementById('clearMistakeBtn');
+
+    async function loadConversations() {
+        try {
+            const response = await fetch('/ai/chat/conversations/');
+            const data = await response.json();
+            conversations = data.conversations;
+            renderConversations();
+            
+            if (conversations.length === 0) {
+                await createNewConversation();
+            } else if (!currentConversationId) {
+                await selectConversation(conversations[0].id);
+            }
+        } catch (error) {
+            console.error('加载对话列表失败:', error);
+        }
+    }
+
+    function renderConversations() {
+        conversationList.innerHTML = '';
+        conversations.forEach(conv => {
+            const div = document.createElement('div');
+            div.className = 'conversation-item' + (conv.id === currentConversationId ? ' active' : '');
+            div.innerHTML = `
+                <span class="conversation-title">${conv.title}</span>
+                <button class="delete-btn btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteConversation(${conv.id})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            div.onclick = () => selectConversation(conv.id);
+            conversationList.appendChild(div);
+        });
+    }
+
+    async function createNewConversation() {
+        try {
+            const response = await fetch('/ai/chat/conversations/create/', { method: 'POST' });
+            const data = await response.json();
+            conversations.unshift(data);
+            renderConversations();
+            await selectConversation(data.id);
+        } catch (error) {
+            console.error('创建新对话失败:', error);
+        }
+    }
+
+    async function selectConversation(conversationId) {
+        currentConversationId = conversationId;
+        renderConversations();
+        clearMessages();
+        
+        try {
+            const response = await fetch(`/ai/chat/conversations/${conversationId}/`);
+            const data = await response.json();
+            data.messages.forEach(msg => {
+                addMessage(msg.role, msg.content);
+            });
+            if (data.messages.length === 0) {
+                addMessage('assistant', '你好！我是AI聊天助手，有什么可以帮助你的吗？');
+            }
+        } catch (error) {
+            console.error('加载对话消息失败:', error);
+        }
+    }
+
+    async function deleteConversation(conversationId) {
+        if (!confirm('确定要删除这个对话吗？')) return;
+        
+        try {
+            await fetch(`/ai/chat/conversations/${conversationId}/delete/`, { method: 'DELETE' });
+            conversations = conversations.filter(c => c.id !== conversationId);
+            renderConversations();
+            
+            if (conversationId === currentConversationId) {
+                if (conversations.length > 0) {
+                    await selectConversation(conversations[0].id);
+                } else {
+                    await createNewConversation();
+                }
+            }
+        } catch (error) {
+            console.error('删除对话失败:', error);
+        }
+    }
+
+    function clearMessages() {
+        messagesContainer.innerHTML = '';
+    }
+
+    function addMessage(role, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}`;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.textContent = content;
+        
+        messageDiv.appendChild(contentDiv);
+        messagesContainer.appendChild(messageDiv);
+        
+        scrollToBottom();
+        return contentDiv;
+    }
+
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function setLoadingState(isLoading) {
+        sendButton.disabled = isLoading;
+        buttonText.style.display = isLoading ? 'none' : 'inline';
+        buttonLoading.style.display = isLoading ? 'inline' : 'none';
+        typingIndicator.style.display = isLoading ? 'flex' : 'none';
+        if (isLoading) {
+            scrollToBottom();
+        }
+    }
+
+    async function sendMessage() {
+        let message = messageInput.value.trim();
+        if (!message || !currentConversationId) return;
+
+        let fullMessage = message;
+        if (selectedMistake) {
+            fullMessage = `${message}\n\n参考错题：\n标题：${selectedMistake.title}\n内容：${selectedMistake.content}`;
+        }
+
+        addMessage('user', fullMessage);
+        messageInput.value = '';
+        clearMistake();
+        
+        setLoadingState(true);
+        const assistantContentDiv = addMessage('assistant', '');
+        
+        try {
+            const response = await fetch('/ai/chat/chat-stream/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: fullMessage,
+                    conversation_id: currentConversationId
+                })
+            });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullContent = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.substring(6);
+                        if (data === '[DONE]') continue;
+                        
+                        try {
+                            const json = JSON.parse(data);
+                            if (json.choices && json.choices.length > 0) {
+                                const delta = json.choices[0].delta;
+                                if (delta && delta.content) {
+                                    fullContent += delta.content;
+                                    assistantContentDiv.textContent = fullContent;
+                                    scrollToBottom();
+                                }
+                            }
+                            if (json.id) {
+                                loadConversations();
+                            }
+                        } catch (e) {
+                            console.error('解析JSON失败:', e);
+                        }
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.error('发送消息失败:', error);
+            assistantContentDiv.textContent = '抱歉，发生了错误，请稍后重试。';
+        } finally {
+            setLoadingState(false);
+            loadConversations();
+        }
+    }
+
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    sendButton.addEventListener('click', sendMessage);
+    newChatBtn.addEventListener('click', createNewConversation);
+    
+    async function loadMistakes() {
+        try {
+            const response = await fetch('/ai/chat/mistakes/');
+            const data = await response.json();
+            renderMistakes(data.mistakes);
+        } catch (error) {
+            console.error('加载错题失败:', error);
+        }
+    }
+    
+    function renderMistakes(mistakes) {
+        mistakeDropdown.innerHTML = '';
+        if (mistakes.length === 0) {
+            mistakeDropdown.innerHTML = '<div class="p-3 text-center text-muted">暂无错题</div>';
+            return;
+        }
+        mistakes.forEach(mistake => {
+            const div = document.createElement('div');
+            div.className = 'mistake-item';
+            let imgHtml = '';
+            if (mistake.image_url) {
+                imgHtml = `<img src="${mistake.image_url}" class="mistake-thumbnail" alt="错题图片">`;
+            }
+            div.innerHTML = `
+                ${imgHtml}
+                <div class="mistake-info">
+                    <div class="mistake-title">${escapeHtml(mistake.title)}</div>
+                    <div class="mistake-meta">${escapeHtml(mistake.subject_name)} · ${formatDate(mistake.created_at)}</div>
+                </div>
+            `;
+            div.onclick = () => selectMistake(mistake);
+            mistakeDropdown.appendChild(div);
+        });
+    }
+    
+    function selectMistake(mistake) {
+        selectedMistake = mistake;
+        selectedMistakeTitle.textContent = mistake.title;
+        selectedMistakeBadge.style.display = 'inline-flex';
+        mistakeDropdown.classList.remove('show');
+    }
+    
+    function clearMistake() {
+        selectedMistake = null;
+        selectedMistakeBadge.style.display = 'none';
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function formatDate(isoString) {
+        const date = new Date(isoString);
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        if (minutes < 1) return '刚刚';
+        if (minutes < 60) return `${minutes}分钟前`;
+        if (hours < 24) return `${hours}小时前`;
+        if (days < 7) return `${days}天前`;
+        return date.toLocaleDateString('zh-CN');
+    }
+    
+    mistakeSelectorBtn.addEventListener('click', () => {
+        mistakeDropdown.classList.toggle('show');
+        if (mistakeDropdown.classList.contains('show')) {
+            loadMistakes();
+        }
+    });
+    
+    clearMistakeBtn.addEventListener('click', clearMistake);
+    
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.mistake-selector-wrapper')) {
+            mistakeDropdown.classList.remove('show');
+        }
+    });
+    
+    loadConversations();
+    messageInput.focus();
+</script>
+{% endblock %}
