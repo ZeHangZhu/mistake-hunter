@@ -237,7 +237,7 @@
         <div class="messages-container" id="messagesContainer">
             <div class="message assistant">
                 <div class="message-content">
-                    你好！我是AI聊天助手，有什么可以帮助你的吗？
+                    你好！我是错题猎手AI，有什么可以帮助你的吗？
                 </div>
             </div>
         </div>
@@ -287,6 +287,7 @@
 {% block extra_js %}
 <script>
     let currentConversationId = null;
+    let currentConversationHasMessages = false;
     let conversations = [];
     let selectedMistake = null;
     const messagesContainer = document.getElementById('messagesContainer');
@@ -338,6 +339,9 @@
 
     async function createNewConversation() {
         try {
+            if (currentConversationId && !currentConversationHasMessages) {
+                return;
+            }
             const response = await fetch('/ai/chat/conversations/create/', { method: 'POST' });
             const data = await response.json();
             conversations.unshift(data);
@@ -349,6 +353,10 @@
     }
 
     async function selectConversation(conversationId) {
+        if (conversationId === currentConversationId) {
+            return;
+        }
+        
         currentConversationId = conversationId;
         renderConversations();
         clearMessages();
@@ -356,11 +364,12 @@
         try {
             const response = await fetch(`/ai/chat/conversations/${conversationId}/`);
             const data = await response.json();
+            currentConversationHasMessages = data.messages.length > 0;
             data.messages.forEach(msg => {
                 addMessage(msg.role, msg.content);
             });
             if (data.messages.length === 0) {
-                addMessage('assistant', '你好！我是AI聊天助手，有什么可以帮助你的吗？');
+                addMessage('assistant', '你好！我是错题猎手AI，有什么可以帮助你的吗？');
             }
         } catch (error) {
             console.error('加载对话消息失败:', error);
@@ -432,6 +441,7 @@
         addMessage('user', fullMessage);
         messageInput.value = '';
         clearMistake();
+        currentConversationHasMessages = true;
         
         setLoadingState(true);
         const assistantContentDiv = addMessage('assistant', '');
