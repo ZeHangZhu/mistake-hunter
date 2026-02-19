@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
+from django.conf import settings
 from datetime import timedelta
 from .models import Mistake, Subject, Group, KnowledgePoint, MistakeImage, ReviewRecord, ReviewImage, PointsRecord
 from django.db.models import Q
@@ -69,16 +70,47 @@ Secret = "MTEzNjZlZDZhMTVjYTRiM2NiMmU3YzQz"
 recognizer = FormulaRecognizer(APPID, APIKey, Secret)
 
 # 后台线程处理OCR识别
-def process_ocr_in_background(image_path, mistake_image_id):
+def process_ocr_in_background(mistake_image_id):
     try:
+        mistake_image = MistakeImage.objects.get(pk=mistake_image_id)
+        # 使用 Django 的 settings.MEDIA_ROOT 来构建正确的路径
+        image_path = os.path.join(settings.MEDIA_ROOT, str(mistake_image.image))
+        
+        print(f"开始处理OCR识别，图片路径: {image_path}")
+        
         if os.path.exists(image_path):
-            ocr_result = recognizer.recognize(image_path)
+            APPID = "bd6d7a3c"
+            APIKey = "ca854ccd4fa3c72a8ea1b0fbf3afac1c"
+            Secret = "MTEzNjZlZDZhMTVjYTRiM2NiMmU3YzQz"
+            
+            recognizer = FormulaRecognizer(APPID, APIKey, Secret)
+            
+            image_path = "D:/ocr_test.jpg"
+            
+            try:
+                ocr_result = recognizer.recognize(image_path)
+                print("识别结果：")
+                print(ocr_result)
+            except Exception as e:
+                print(f"识别失败：{e}")
+            
             # 更新数据库
-            mistake_image = MistakeImage.objects.get(pk=mistake_image_id)
             mistake_image.ocr_text = ocr_result
             mistake_image.save()
+            
+            # 同时更新 Mistake 的 content 字段
+            mistake = mistake_image.mistake
+            # 只有当 content 为空或者是默认值时才更新
+            if not mistake.content or mistake.content == '图片题目':
+                mistake.content = ocr_result
+                mistake.save()
+                print(f"已更新题目content: {ocr_result}")
+        else:
+            print(f"图片文件不存在: {image_path}")
     except Exception as e:
+        import traceback
         print(f"后台OCR识别失败: {e}")
+        print(traceback.format_exc())
 
 
 @login_required
@@ -132,10 +164,9 @@ def mistake_create_view(request):
                 image=image_file
             )
             # 创建后台线程处理OCR识别
-            image_path = os.path.join('media', str(mistake_image.image))
             thread = threading.Thread(
                 target=process_ocr_in_background,
-                args=(image_path, mistake_image.pk)
+                args=(mistake_image.pk,)
             )
             thread.daemon = True
             thread.start()
@@ -148,10 +179,9 @@ def mistake_create_view(request):
                 image=solution_image_file
             )
             # 创建后台线程处理OCR识别
-            image_path = os.path.join('media', str(mistake_image.image))
             thread = threading.Thread(
                 target=process_ocr_in_background,
-                args=(image_path, mistake_image.pk)
+                args=(mistake_image.pk,)
             )
             thread.daemon = True
             thread.start()
@@ -164,10 +194,9 @@ def mistake_create_view(request):
                 image=correct_answer_image_file
             )
             # 创建后台线程处理OCR识别
-            image_path = os.path.join('media', str(mistake_image.image))
             thread = threading.Thread(
                 target=process_ocr_in_background,
-                args=(image_path, mistake_image.pk)
+                args=(mistake_image.pk,)
             )
             thread.daemon = True
             thread.start()
@@ -180,10 +209,9 @@ def mistake_create_view(request):
                 image=user_answer_image_file
             )
             # 创建后台线程处理OCR识别
-            image_path = os.path.join('media', str(mistake_image.image))
             thread = threading.Thread(
                 target=process_ocr_in_background,
-                args=(image_path, mistake_image.pk)
+                args=(mistake_image.pk,)
             )
             thread.daemon = True
             thread.start()
@@ -238,10 +266,9 @@ def mistake_edit_view(request, pk):
                 image=image_file
             )
             # 创建后台线程处理OCR识别
-            image_path = os.path.join('media', str(mistake_image.image))
             thread = threading.Thread(
                 target=process_ocr_in_background,
-                args=(image_path, mistake_image.pk)
+                args=(mistake_image.pk,)
             )
             thread.daemon = True
             thread.start()
@@ -255,10 +282,9 @@ def mistake_edit_view(request, pk):
                 image=solution_image_file
             )
             # 创建后台线程处理OCR识别
-            image_path = os.path.join('media', str(mistake_image.image))
             thread = threading.Thread(
                 target=process_ocr_in_background,
-                args=(image_path, mistake_image.pk)
+                args=(mistake_image.pk,)
             )
             thread.daemon = True
             thread.start()
@@ -272,10 +298,9 @@ def mistake_edit_view(request, pk):
                 image=correct_answer_image_file
             )
             # 创建后台线程处理OCR识别
-            image_path = os.path.join('media', str(mistake_image.image))
             thread = threading.Thread(
                 target=process_ocr_in_background,
-                args=(image_path, mistake_image.pk)
+                args=(mistake_image.pk,)
             )
             thread.daemon = True
             thread.start()
@@ -289,10 +314,9 @@ def mistake_edit_view(request, pk):
                 image=user_answer_image_file
             )
             # 创建后台线程处理OCR识别
-            image_path = os.path.join('media', str(mistake_image.image))
             thread = threading.Thread(
                 target=process_ocr_in_background,
-                args=(image_path, mistake_image.pk)
+                args=(mistake_image.pk,)
             )
             thread.daemon = True
             thread.start()

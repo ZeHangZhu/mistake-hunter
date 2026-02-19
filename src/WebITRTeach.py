@@ -192,7 +192,7 @@ if __name__ == '__main__':
     
     recognizer = FormulaRecognizer(APPID, APIKey, Secret)
     
-    image_path = "itr/2.jpg"
+    image_path = "D:/ocr_test.jpg"
     
     try:
         result = recognizer.recognize(image_path)
