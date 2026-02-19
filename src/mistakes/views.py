@@ -85,8 +85,6 @@ def process_ocr_in_background(mistake_image_id):
             
             recognizer = FormulaRecognizer(APPID, APIKey, Secret)
             
-            image_path = "D:/ocr_test.jpg"
-            
             try:
                 ocr_result = recognizer.recognize(image_path)
                 print("识别结果：")
