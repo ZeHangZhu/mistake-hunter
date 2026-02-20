@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错题猎手API文档</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #343a40;
+            color: #fff;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .nav-item {
+            margin-bottom: 10px;
+        }
+        .nav-link {
+            color: #343a40;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .app-section {
+            margin-bottom: 40px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #343a40;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+        }
+        h3 {
+            color: #495057;
+            margin-top: 20px;
+        }
+        .endpoint {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+        }
+        .endpoint h4 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .method-get {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .method-post {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .method-delete {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .params {
+            margin-top: 10px;
+        }
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .param-table th, .param-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .param-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .response {
+            margin-top: 10px;
+        }
+        .code {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>错题猎手API文档</h1>
+            <p>API接口详细说明</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="app-section">
+                    <h3>文档导航</h3>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#overview">概述</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="users.html">用户管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="mistakes.html">错题管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="aihelper.html">AI辅导</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="chat.html">AI聊天</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="app-section" id="overview">
+                    <h2>概述</h2>
+                    <p>错题猎手是一个用于管理和复习错题的系统，提供了以下功能模块：</p>
+                    <ul>
+                        <li><strong>用户管理</strong>：注册、登录、注销、密码重置等功能</li>
+                        <li><strong>错题管理</strong>：添加、编辑、删除、查看错题，以及错题分类管理</li>
+                        <li><strong>AI辅导</strong>：苏格拉底式对话、相似题生成、复习计划生成等功能</li>
+                        <li><strong>AI聊天</strong>：与AI助手进行对话，获取学习帮助</li>
+                    </ul>
+                    <p>本文档详细说明了各个模块的API接口，包括请求方式、参数、返回值等信息。</p>
+                </div>
+
+                <div class="app-section">
+                    <h2>快速链接</h2>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>用户管理</h3>
+                            <ul>
+                                <li><a href="users.html#register">注册</a></li>
+                                <li><a href="users.html#login">登录</a></li>
+                                <li><a href="users.html#logout">注销</a></li>
+                                <li><a href="users.html#forgot-password">忘记密码</a></li>
+                                <li><a href="users.html#reset-password">重置密码</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h3>错题管理</h3>
+                            <ul>
+                                <li><a href="mistakes.html#mistake-list">错题列表</a></li>
+                                <li><a href="mistakes.html#mistake-create">创建错题</a></li>
+                                <li><a href="mistakes.html#mistake-detail">查看错题详情</a></li>
+                                <li><a href="mistakes.html#mistake-edit">编辑错题</a></li>
+                                <li><a href="mistakes.html#mistake-delete">删除错题</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>AI辅导</h3>
+                            <ul>
+                                <li><a href="aihelper.html#review-plan">复习计划</a></li>
+                                <li><a href="aihelper.html#socratic-session">苏格拉底式对话</a></li>
+                                <li><a href="aihelper.html#generate-similar">生成相似题</a></li>
+                                <li><a href="aihelper.html#similar-problems">查看相似题</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h3>AI聊天</h3>
+                            <ul>
+                                <li><a href="chat.html#chat-index">聊天首页</a></li>
+                                <li><a href="chat.html#chat-stream">聊天流</a></li>
+                                <li><a href="chat.html#get-conversations">获取对话列表</a></li>
+                                <li><a href="chat.html#create-conversation">创建对话</a></li>
+                                <li><a href="chat.html#get-recent-mistakes">获取最近错题</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
