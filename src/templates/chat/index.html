@@ -218,6 +218,100 @@
         font-size: 0.75rem;
         margin-bottom: 0.5rem;
     }
+    .message-content h1, .message-content h2, .message-content h3, .message-content h4, .message-content h5, .message-content h6 {
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    .message-content h1 {
+        font-size: 1.5rem;
+    }
+    .message-content h2 {
+        font-size: 1.25rem;
+    }
+    .message-content h3 {
+        font-size: 1.1rem;
+    }
+    .message-content p {
+        margin-bottom: 0.75rem;
+    }
+    .message-content ul, .message-content ol {
+        margin-bottom: 0.75rem;
+        padding-left: 1.5rem;
+    }
+    .message-content li {
+        margin-bottom: 0.25rem;
+    }
+    .message-content code {
+        background-color: rgba(0, 0, 0, 0.1);
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875em;
+    }
+    .message-content pre {
+        background-color: #2d2d2d;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        margin-bottom: 0.75rem;
+    }
+    .message-content pre code {
+        background-color: transparent;
+        padding: 0;
+        color: inherit;
+    }
+    .message-content blockquote {
+        border-left: 4px solid #007bff;
+        padding-left: 1rem;
+        margin: 0.75rem 0;
+        color: #6c757d;
+    }
+    .message-content a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    .message-content a:hover {
+        text-decoration: underline;
+    }
+    .message-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 0.75rem;
+    }
+    .message-content th, .message-content td {
+        border: 1px solid #dee2e6;
+        padding: 0.5rem;
+        text-align: left;
+    }
+    .message-content th {
+        background-color: #f8f9fa;
+    }
+    .message-content hr {
+        border: none;
+        border-top: 1px solid #dee2e6;
+        margin: 1rem 0;
+    }
+    .message-content strong {
+        font-weight: 600;
+    }
+    .message-content em {
+        font-style: italic;
+    }
+    .message.assistant .message-content code {
+        background-color: rgba(0, 0, 0, 0.06);
+    }
+    .message.user .message-content code {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+    .message.user .message-content a {
+        color: white;
+    }
+    .message.user .message-content blockquote {
+        border-left-color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.8);
+    }
 </style>
 {% endblock %}
 
@@ -413,14 +507,13 @@
         
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
-        contentDiv.innerHTML = escapeHtml(content);
+        contentDiv.innerHTML = marked.parse(content);
         
         messageDiv.appendChild(contentDiv);
         messagesContainer.appendChild(messageDiv);
         
         scrollToBottom();
         
-        // 触发MathJax重新渲染
         if (window.MathJax) {
             MathJax.typesetPromise([contentDiv]).catch(err => console.error('MathJax渲染失败:', err));
         }
@@ -496,7 +589,6 @@
                                     assistantContentDiv.innerHTML = fullContent;
                                     scrollToBottom();
                                     
-                                    // 触发MathJax重新渲染
                                     if (window.MathJax) {
                                         MathJax.typesetPromise([assistantContentDiv]).catch(err => console.error('MathJax渲染失败:', err));
                                     }
@@ -612,7 +704,11 @@
         }
     });
     
-    loadConversations();
-    messageInput.focus();
+    document.addEventListener('DOMContentLoaded', () => {
+        requestIdleCallback(() => {
+            loadConversations();
+        });
+        messageInput.focus();
+    });
 </script>
 {% endblock %}

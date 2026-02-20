@@ -156,15 +156,16 @@ def chat_stream(request):
 @require_http_methods(["GET"])
 def get_recent_mistakes(request):
     try:
-        mistakes = Mistake.objects.order_by('-created_at')[:20]
+        mistakes = Mistake.objects.select_related('subject').prefetch_related('images').order_by('-created_at')[:20]
         data = []
         for mistake in mistakes:
             image_url = None
             ocr_content = ''
-            first_image = mistake.images.first()
-            if first_image:
-                image_url = first_image.image.url
-                ocr_content = first_image.ocr_text
+            if mistake.images.exists():
+                first_image = mistake.images.first()
+                if first_image:
+                    image_url = first_image.image.url
+                    ocr_content = first_image.ocr_text
             data.append({
                 'id': mistake.id,
                 'title': mistake.title,

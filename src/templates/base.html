@@ -70,16 +70,23 @@
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
     <script>
-        MathJax = {
+        window.MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']]
             },
             svg: {
                 fontCache: 'global'
+            },
+            startup: {
+                ready: () => {
+                    console.log('MathJax is loaded');
+                    MathJax.startup.defaultReady();
+                }
             }
         };
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="{% static 'js/mathjax/tex-mml-chtml.js' %}" async></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
