@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}公告详情 - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">公告详情</h5>
+            </div>
+            <div class="card-body">
+                <!-- Markdown内容区域 -->
+                <div id="markdown-content"></div>
+            </div>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn btn-primary">返回首页</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 从后端获取Markdown内容
+    const markdownContent = `{{ markdown_content|escapejs }}`;
+    
+    // 使用marked.js将Markdown转换为HTML
+    document.getElementById('markdown-content').innerHTML = marked.parse(markdownContent);
+</script>
+{% endblock %}

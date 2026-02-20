@@ -15,24 +15,21 @@
             <div class="card-body">
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
-                        <a href="#" class="text-decoration-none text-dark">
+                        <a href="{% url 'announcement_detail' 1 %}" class="text-decoration-none text-dark">
                             <div class="fw-bold">系统更新公告</div>
                             <small class="text-muted">2026-02-15</small>
-                            <p class="text-truncate mt-1">错题猎手系统已完成更新，新增AI辅导功能...</p>
                         </a>
                     </li>
                     <li class="list-group-item">
-                        <a href="#" class="text-decoration-none text-dark">
+                        <a href="{% url 'announcement_detail' 2 %}" class="text-decoration-none text-dark">
                             <div class="fw-bold">使用指南</div>
                             <small class="text-muted">2026-02-10</small>
-                            <p class="text-truncate mt-1">如何高效使用错题猎手进行备考复习...</p>
                         </a>
                     </li>
                     <li class="list-group-item">
-                        <a href="#" class="text-decoration-none text-dark">
+                        <a href="{% url 'announcement_detail' 3 %}" class="text-decoration-none text-dark">
                             <div class="fw-bold">功能预告</div>
                             <small class="text-muted">2026-02-05</small>
-                            <p class="text-truncate mt-1">即将上线的新功能：知识点关联分析...</p>
                         </a>
                     </li>
                 </ul>
