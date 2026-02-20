@@ -160,13 +160,15 @@ def get_recent_mistakes(request):
         data = []
         for mistake in mistakes:
             image_url = None
+            ocr_content = ''
             first_image = mistake.images.first()
             if first_image:
                 image_url = first_image.image.url
+                ocr_content = first_image.ocr_text
             data.append({
                 'id': mistake.id,
                 'title': mistake.title,
-                'content': mistake.content,
+                'content': ocr_content,
                 'subject_name': mistake.subject.name,
                 'created_at': mistake.created_at.isoformat(),
                 'image_url': image_url
