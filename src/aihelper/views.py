@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from datetime import date
-from .models import SocraticSession, SocraticMessage, SimilarProblem, ReviewPlan
+from .models import SocraticSession, SocraticMessage, ReviewPlan
 from mistakes.models import Mistake
 
 
@@ -72,35 +72,4 @@ def end_socratic_session_view(request, session_id):
     return redirect('mistake_detail', pk=session.mistake.pk)
 
 
-@login_required
-def generate_similar_problem_view(request, mistake_id):
-    mistake = get_object_or_404(Mistake, pk=mistake_id, user=request.user)
-    
-    if request.method == 'POST':
-        title = f'{mistake.title} - 相似题'
-        content = f'这是基于原题生成的相似题。（AI功能占位，后续接入真实API）\n\n原题：{mistake.content}'
-        
-        SimilarProblem.objects.create(
-            original_mistake=mistake,
-            title=title,
-            content=content,
-            difficulty=mistake.difficulty,
-            user=request.user
-        )
-        
-        messages.success(request, '相似题已生成')
-        return redirect('similar_problems', mistake_id=mistake_id)
-    
-    return render(request, 'aihelper/generate_similar.html', {'mistake': mistake})
 
-
-@login_required
-def similar_problems_view(request, mistake_id):
-    mistake = get_object_or_404(Mistake, pk=mistake_id, user=request.user)
-    problems = mistake.similar_problems.all()
-    
-    context = {
-        'mistake': mistake,
-        'problems': problems,
-    }
-    return render(request, 'aihelper/similar_problems.html', context)
