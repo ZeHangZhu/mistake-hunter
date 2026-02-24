@@ -49,6 +49,7 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     
+    login_input = ''
     if request.method == 'POST':
         login_input = request.POST.get('login')
         password = request.POST.get('password')
@@ -69,7 +70,7 @@ def login_view(request):
         else:
             messages.error(request, '用户名/邮箱或密码错误')
 
-    return render(request, 'users/login.html')
+    return render(request, 'users/login.html', {'login_input': login_input})
 
 
 def logout_view(request):
