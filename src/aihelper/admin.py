@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SocraticSession, SocraticMessage, SimilarProblem, ReviewPlan
+from .models import SocraticSession, SocraticMessage, ReviewPlan
 
 
 @admin.register(SocraticSession)
@@ -13,13 +13,6 @@ class SocraticSessionAdmin(admin.ModelAdmin):
 class SocraticMessageAdmin(admin.ModelAdmin):
     list_display = ['session', 'role', 'is_stuck_point', 'created_at']
     list_filter = ['role', 'is_stuck_point', 'created_at']
-
-
-@admin.register(SimilarProblem)
-class SimilarProblemAdmin(admin.ModelAdmin):
-    list_display = ['title', 'original_mistake', 'user', 'difficulty', 'is_practiced', 'created_at']
-    list_filter = ['difficulty', 'is_practiced', 'created_at']
-    search_fields = ['title', 'user__username']
 
 
 @admin.register(ReviewPlan)

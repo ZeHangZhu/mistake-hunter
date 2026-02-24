@@ -7,11 +7,10 @@
     <div class="col-12 d-flex justify-content-between align-items-center">
         <h1>{{ mistake.title }}</h1>
         <div>
-            <a href="{% url 'mistake_edit' mistake.pk %}" class="btn btn-outline-primary me-2">编辑</a>
-            <a href="{% url 'review_mistake' mistake.pk %}" class="btn btn-success me-2">复习</a>
-            <a href="{% url 'socratic_session' mistake.pk %}" class="btn btn-info me-2">AI辅导</a>
-            <a href="{% url 'generate_similar' mistake.pk %}" class="btn btn-warning">生成相似题</a>
-        </div>
+                <a href="{% url 'mistake_edit' mistake.pk %}" class="btn btn-outline-primary me-2">编辑</a>
+                <a href="{% url 'review_mistake' mistake.pk %}" class="btn btn-success me-2">复习</a>
+                <a href="{% url 'socratic_session' mistake.pk %}" class="btn btn-info">AI辅导</a>
+            </div>
     </div>
 </div>
 
