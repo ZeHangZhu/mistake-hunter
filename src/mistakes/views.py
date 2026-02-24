@@ -9,6 +9,7 @@ from django.db.models import Q
 from WebITRTeach import FormulaRecognizer
 import os
 import threading
+from PIL import Image, ImageEnhance, ImageOps
 
 
 @login_required
@@ -63,6 +64,39 @@ def mistake_detail_view(request, pk):
     return render(request, 'mistakes/detail.html', context)
 
 
+# 图像处理函数：黑白增强 + 裁剪
+def process_image(image_path):
+    try:
+        # 打开图片
+        img = Image.open(image_path)
+        
+        # 转换为灰度图
+        img_gray = ImageOps.grayscale(img)
+        
+        # 增强对比度
+        enhancer = ImageEnhance.Contrast(img_gray)
+        img_enhanced = enhancer.enhance(1.5)  # 增强对比度1.5倍
+        
+        # 增强亮度
+        enhancer = ImageEnhance.Brightness(img_enhanced)
+        img_enhanced = enhancer.enhance(1.1)  # 增强亮度1.1倍
+        
+        # 裁剪图片：去除边缘空白
+        # 获取图像边界
+        bbox = img_enhanced.getbbox()
+        if bbox:
+            img_cropped = img_enhanced.crop(bbox)
+        else:
+            img_cropped = img_enhanced
+        
+        # 保存处理后的图片，覆盖原文件
+        img_cropped.save(image_path)
+        print(f"图片处理完成: {image_path}")
+    except Exception as e:
+        import traceback
+        print(f"图像处理失败: {e}")
+        print(traceback.format_exc())
+
 # 初始化FormulaRecognizer
 APPID = "bd6d7a3c"
 APIKey = "ca854ccd4fa3c72a8ea1b0fbf3afac1c"
@@ -79,6 +113,9 @@ def process_ocr_in_background(mistake_image_id):
         print(f"开始处理OCR识别，图片路径: {image_path}")
         
         if os.path.exists(image_path):
+            # 先处理图片：黑白增强 + 裁剪
+            process_image(image_path)
+            
             APPID = "bd6d7a3c"
             APIKey = "ca854ccd4fa3c72a8ea1b0fbf3afac1c"
             Secret = "MTEzNjZlZDZhMTVjYTRiM2NiMmU3YzQz"
@@ -434,10 +471,14 @@ def review_mistake_view(request, pk):
         # 处理复习笔记图片上传
         if 'notes_image' in request.FILES:
             notes_image_file = request.FILES['notes_image']
-            ReviewImage.objects.create(
+            review_image = ReviewImage.objects.create(
                 review_record=review_record,
                 image=notes_image_file
             )
+            # 处理图片：黑白增强 + 裁剪
+            image_path = os.path.join(settings.MEDIA_ROOT, str(review_image.image))
+            if os.path.exists(image_path):
+                process_image(image_path)
         
         mistake.review_count += 1
         mistake.last_reviewed_at = timezone.now()
