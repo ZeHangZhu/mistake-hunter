@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .models import Conversation, Message
 from mistakes.models import Mistake, MistakeImage
+from config import API_KEY
 
 
 def index(request):
@@ -102,7 +103,7 @@ def chat_stream(request):
             "stream": True
         }
         headers = {
-            "Authorization": "Bearer HwnirjkNhecyYXcEzxpu:JHPUSjuwDcYScMRIrRKP"
+            "Authorization": f"Bearer {API_KEY}"
         }
 
         user_msg = Message.objects.create(
