@@ -16,6 +16,40 @@
 4. 支持用户上传错题图片,并自动识别错题中的公式。
 5. 电脑端移动端同步,B/S架构,用户可以在电脑端和移动端之间同步数据。
 
+## 启动服务器
+### 1.配置pip镜像源(可选)
+配置pip清华镜像源
+```bash
+pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+```
+#### 其他国内镜像源
+
+- 清华大学TUNA镜像源： `https://pypi.tuna.tsinghua.edu.cn/simple`
+- 阿里云镜像源： `http://mirrors.aliyun.com/pypi/simple/`
+- 中国科学技术大学镜像源： `https://mirrors.ustc.edu.cn/pypi/simple/`
+- 华为云镜像源： `https://repo.huaweicloud.com/repository/pypi/simple/`
+- 腾讯云镜像源：`https://mirrors.cloud.tencent.com/pypi/simple/`
+
+### 2. 配置虚拟环境
+使用Python 3.3及以上版本内置的`venv`模块
+Windows:
+```bash
+cd mistake-hunter
+python -m venv .venv
+```
+Linux:
+```bash
+cd mistake-hunter
+python3 -m venv .venv
+```
+
+### 3.使用启动脚本启动服务器
+首次启动,应使用`-r`安装依赖库和运行数据库迁移,随后服务器会自动启动
+```bash
+script\run -r
+```
+
+
 ## 文档
 |文档|
 |---|
