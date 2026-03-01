@@ -55,13 +55,14 @@
                                 <span class="badge bg-secondary">难度：{{ mistake.get_difficulty_display }}</span>
                                 <span class="badge bg-info">掌握程度：{{ mistake.get_mastery_level_display }}</span>
                                 <span class="badge bg-success">复习次数：{{ mistake.review_count }}</span>
-                                {% if mistake.reviewed_today %}
-                                <span class="badge bg-success">已复习</span>
-                                {% endif %}
                             </div>
                         </div>
                         <div>
+                            {% if mistake.reviewed_today %}
+                            <span class="btn btn-sm btn-success disabled">已复习</span>
+                            {% else %}
                             <a href="{% url 'review_mistake' mistake.pk %}" class="btn btn-sm btn-outline-primary">开始复习</a>
+                            {% endif %}
                         </div>
                     </div>
                 </li>
