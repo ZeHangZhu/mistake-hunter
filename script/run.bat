@@ -3,7 +3,6 @@
 
 ECHO =========================================
 ECHO Mistake-Hunter V1.0.0
-ECHO  
 ECHO If it is the first time to execute, please use the parameter -r to install environment dependencies
 ECHO We recommend using .venv Virtual enviremnet to prevent version conflict
 ECHO ========================================
