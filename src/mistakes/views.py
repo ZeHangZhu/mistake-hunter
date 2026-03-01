@@ -377,6 +377,15 @@ def mistake_edit_view(request, pk):
 def mistake_delete_view(request, pk):
     mistake = get_object_or_404(Mistake, pk=pk, user=request.user)
     if request.method == 'POST':
+        # Delete related records from tables that might have foreign key constraints
+        from django.db import connection
+        with connection.cursor() as cursor:
+            # Delete similar problems
+            cursor.execute("DELETE FROM similar_problems WHERE original_mistake_id = %s", [pk])
+            # Delete review plans
+            cursor.execute("DELETE FROM review_plans WHERE mistake_id = %s", [pk])
+            # Delete socratic sessions
+            cursor.execute("DELETE FROM socratic_sessions WHERE mistake_id = %s", [pk])
         mistake.delete()
         messages.success(request, '错题删除成功')
         return redirect('mistake_list')
@@ -796,3 +805,83 @@ def points_center_view(request):
         'points_by_reason': points_by_reason
     }
     return render(request, 'mistakes/points_center.html', context)
+
+
+@login_required
+def analytics_view(request):
+    from django.db import models
+    from django.db.models import Count
+    from datetime import timedelta
+    
+    # 获取用户的所有错题，使用 select_related 优化查询
+    mistakes = Mistake.objects.filter(user=request.user).select_related('subject')
+    
+    # 计算错误原因分布
+    error_cause_data = []
+    error_cause_counts = mistakes.values('error_cause').annotate(count=Count('error_cause'))
+    for item in error_cause_counts:
+        error_cause = item['error_cause']
+        count = item['count']
+        # 获取错误原因的中文显示
+        for choice in Mistake.ERROR_CAUSE_CHOICES:
+            if choice[0] == error_cause:
+                error_cause_data.append({'value': count, 'name': choice[1]})
+                break
+    
+    # 计算学科分布
+    subject_data = []
+    subject_counts = mistakes.values('subject__name').annotate(count=Count('subject__name'))
+    for item in subject_counts:
+        subject_name = item['subject__name']
+        count = item['count']
+        subject_data.append({'value': count, 'name': subject_name})
+    
+    # 计算错题数量趋势（按周）
+    now = timezone.now()
+    mistake_trend_data = {
+        'dates': [],
+        'counts': []
+    }
+    
+    # 生成最近 5 周的日期
+    for i in range(4, -1, -1):
+        start_date = now - timedelta(weeks=i)
+        end_date = start_date + timedelta(weeks=1)
+        week_start = start_date.strftime('%Y-%m-%d')
+        mistake_trend_data['dates'].append(week_start)
+        
+        # 计算该周的错题数量
+        week_count = mistakes.filter(
+            created_at__gte=start_date,
+            created_at__lt=end_date
+        ).count()
+        mistake_trend_data['counts'].append(week_count)
+    
+    # 计算知识点掌握情况 - 使用缓存减少查询
+    knowledge_mastery_data = []
+    knowledge_points = KnowledgePoint.objects.filter(user=request.user)
+    
+    # 预构建错题与知识点的映射关系
+    mistake_kp_map = {}
+    for mistake in mistakes.prefetch_related('knowledge_points'):
+        for kp in mistake.knowledge_points.all():
+            if kp.id not in mistake_kp_map:
+                mistake_kp_map[kp.id] = []
+            mistake_kp_map[kp.id].append(mistake)
+    
+    for kp in knowledge_points:
+        kp_mistakes = mistake_kp_map.get(kp.id, [])
+        if kp_mistakes:
+            # 计算掌握程度（已掌握的比例）
+            mastered_count = sum(1 for m in kp_mistakes if m.mastery_level == 'mastered')
+            total_count = len(kp_mistakes)
+            mastery_percentage = int((mastered_count / total_count) * 100)
+            knowledge_mastery_data.append({'name': kp.name, 'value': mastery_percentage})
+    
+    context = {
+        'error_cause_data': error_cause_data,
+        'subject_data': subject_data,
+        'mistake_trend_data': mistake_trend_data,
+        'knowledge_mastery_data': knowledge_mastery_data
+    }
+    return render(request, 'mistakes/analytics.html', context)

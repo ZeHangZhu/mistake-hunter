@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}学习分析 - 错题猎手{% endblock %}
+
+{% block content %}
+<!-- AI分析部分 -->
+<div class="row mb-6">
+    <div class="col-12 mb-3">
+        <h3>AI学习分析</h3>
+    </div>
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">智能分析报告</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <button id="analyzeBtn" class="btn btn-primary">学习建议</button>
+                    <div id="loading" class="d-none mt-2">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">分析中...</span>
+                        </div>
+                        <span class="ms-2">分析中...</span>
+                    </div>
+                </div>
+                <div id="aiResponse" class="border rounded p-3 bg-light" style="min-height: 200px;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 数据可视化部分 -->
+<div class="row mb-6">
+    <div class="col-12 mb-3">
+        <h3>数据可视化</h3>
+    </div>
+    
+    <!-- 错误原因分布 -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-secondary bg-opacity-10">
+                <h5 class="mb-0">错误原因分布</h5>
+            </div>
+            <div class="card-body">
+                <div id="error_cause_chart" style="height: 300px;">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 学科分布 -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-secondary bg-opacity-10">
+                <h5 class="mb-0">学科分布</h5>
+            </div>
+            <div class="card-body">
+                <div id="subject_distribution_chart" style="height: 300px;">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 错题数量趋势 -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-secondary bg-opacity-10">
+                <h5 class="mb-0">错题数量趋势</h5>
+            </div>
+            <div class="card-body">
+                <div id="mistake_trend_chart" style="height: 300px;">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+{% endblock %}
+
+{% block extra_js %}
+<!-- ECharts 按需加载 -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<!-- Markdown 渲染库 -->
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.2/marked.min.js"></script>
+<!-- MathJax 用于渲染数学公式 -->
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+// 全局变量存储数据，供 AI 分析使用
+let errorCauseData = [];
+let subjectData = [];
+let mistakeTrendData = { dates: [], counts: [] };
+let knowledgeMasteryData = [];
+
+// 使用 requestAnimationFrame 优化渲染
+function initCharts() {
+    // 从后端获取的数据
+    errorCauseData = {{ error_cause_data|safe }};
+    subjectData = {{ subject_data|safe }};
+    mistakeTrendData = {{ mistake_trend_data|safe }};
+    knowledgeMasteryData = {{ knowledge_mastery_data|safe }};
+    
+    // 错误原因分布饼图
+    const errorCauseChart = echarts.init(document.getElementById('error_cause_chart'));
+    errorCauseChart.setOption({
+        tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b}: {c} ({d}%)'
+        },
+        legend: {
+            orient: 'vertical',
+            left: 'left',
+            data: errorCauseData.map(item => item.name)
+        },
+        series: [
+            {
+                name: '错误原因',
+                type: 'pie',
+                radius: '60%',
+                data: errorCauseData,
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }
+        ]
+    });
+    
+    // 学科分布饼图
+    const subjectDistributionChart = echarts.init(document.getElementById('subject_distribution_chart'));
+    subjectDistributionChart.setOption({
+        tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b}: {c} ({d}%)'
+        },
+        legend: {
+            orient: 'vertical',
+            left: 'left',
+            data: subjectData.map(item => item.name)
+        },
+        series: [
+            {
+                name: '学科',
+                type: 'pie',
+                radius: '60%',
+                data: subjectData,
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }
+        ]
+    });
+    
+    // 错题数量趋势折线图
+    const mistakeTrendChart = echarts.init(document.getElementById('mistake_trend_chart'));
+    mistakeTrendChart.setOption({
+        tooltip: {
+            trigger: 'axis'
+        },
+        legend: {
+            data: ['错题数量']
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: mistakeTrendData.dates
+        },
+        yAxis: {
+            type: 'value'
+        },
+        series: [
+            {
+                name: '错题数量',
+                type: 'line',
+                stack: 'Total',
+                data: mistakeTrendData.counts,
+                areaStyle: {}
+            }
+        ]
+    });
+    
+    // 知识点掌握情况条形图
+    const knowledgeMasteryChart = echarts.init(document.getElementById('knowledge_mastery_chart'));
+    knowledgeMasteryChart.setOption({
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            data: knowledgeMasteryData.map(item => item.name)
+        },
+        yAxis: {
+            type: 'value',
+            max: 100,
+            axisLabel: {
+                formatter: '{value}%'
+            }
+        },
+        series: [
+            {
+                name: '掌握程度',
+                type: 'bar',
+                data: knowledgeMasteryData.map(item => item.value),
+                itemStyle: {
+                    color: function(params) {
+                        const value = params.value;
+                        if (value >= 80) return '#52c41a';
+                        if (value >= 60) return '#faad14';
+                        return '#f5222d';
+                    }
+                }
+            }
+        ]
+    });
+    
+    // 窗口大小改变时，使用防抖函数重新调整图表大小
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            errorCauseChart.resize();
+            subjectDistributionChart.resize();
+            mistakeTrendChart.resize();
+            knowledgeMasteryChart.resize();
+        }, 100);
+    });
+    
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    requestAnimationFrame(function() {
+        initCharts();
+    });
+});
+
+// AI分析功能
+const analyzeBtn = document.getElementById('analyzeBtn');
+const loading = document.getElementById('loading');
+const aiResponse = document.getElementById('aiResponse');
+
+async function analyzeMistakes() {
+    analyzeBtn.disabled = true;
+    loading.classList.remove('d-none');
+    aiResponse.innerHTML = '';
+    
+    try {
+        const createConvResponse = await fetch('/ai/chat/conversations/create/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        const conversationData = await createConvResponse.json();
+        const conversationId = conversationData.id;
+        
+        let statsMessage = '';
+        
+        if (errorCauseData.length > 0) {
+            statsMessage += '\n错误原因分布: ';
+            for (let i = 0; i < errorCauseData.length; i++) {
+                statsMessage += `${errorCauseData[i].name}: ${errorCauseData[i].value}题`;
+                if (i < errorCauseData.length - 1) statsMessage += ', ';
+            }
+        }
+        
+        if (subjectData.length > 0) {
+            statsMessage += '\n学科分布: ';
+            for (let i = 0; i < subjectData.length; i++) {
+                statsMessage += `${subjectData[i].name}: ${subjectData[i].value}题`;
+                if (i < subjectData.length - 1) statsMessage += ', ';
+            }
+        }
+        
+        if (mistakeTrendData.dates.length > 0) {
+            statsMessage += '\n错题趋势: ';
+            for (let i = 0; i < mistakeTrendData.dates.length; i++) {
+                statsMessage += `${mistakeTrendData.dates[i]}: ${mistakeTrendData.counts[i]}题`;
+                if (i < mistakeTrendData.dates.length - 1) statsMessage += ', ';
+            }
+        }
+        
+        if (knowledgeMasteryData.length > 0) {
+            statsMessage += '\n知识点掌握情况: ';
+            for (let i = 0; i < knowledgeMasteryData.length; i++) {
+                statsMessage += `${knowledgeMasteryData[i].name}: ${knowledgeMasteryData[i].value}%`;
+                if (i < knowledgeMasteryData.length - 1) statsMessage += ', ';
+            }
+        }
+        
+        const analysisMessage = `请帮我提一点学习建议:${statsMessage || ' 暂无统计数据'}`;
+        
+        const response = await fetch('/ai/chat/chat-stream/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: analysisMessage,
+                conversation_id: conversationId
+            })
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullContent = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.substring(6);
+                    if (data === '[DONE]') continue;
+                    
+                    try {
+                        const json = JSON.parse(data);
+                        if (json.choices && json.choices.length > 0) {
+                            const delta = json.choices[0].delta;
+                            if (delta && delta.content) {
+                                fullContent += delta.content;
+                                aiResponse.innerHTML = marked.parse(fullContent);
+                                
+                                if (window.MathJax) {
+                                    MathJax.typesetPromise([aiResponse]).catch(err => console.error('MathJax渲染失败:', err));
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('解析JSON失败:', e);
+                    }
+                }
+            }
+        }
+
+    } catch (error) {
+        console.error('分析失败:', error);
+        aiResponse.innerHTML = '<div class="alert alert-danger">抱歉，分析失败，请稍后重试。</div>';
+    } finally {
+        analyzeBtn.disabled = false;
+        loading.classList.add('d-none');
+    }
+}
+
+analyzeBtn.addEventListener('click', analyzeMistakes);
+</script>
+{% endblock %}

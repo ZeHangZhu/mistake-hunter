@@ -15,4 +15,5 @@ urlpatterns = [
     path('subjects/create/', views.subject_create_view, name='subject_create'),
     path('subjects/<int:pk>/delete/', views.subject_delete_view, name='subject_delete'),
     path('points_center/', views.points_center_view, name='points_center'),
+    path('analytics/', views.analytics_view, name='analytics'),
 ]

@@ -105,7 +105,7 @@ class Mistake(models.Model):
         ('custom', '自定义'),
     ]
 
-    title = models.CharField(max_length=200, verbose_name='题目标题')
+    title = models.CharField(max_length=200, blank=True, verbose_name='题目标题')
     content = models.TextField(verbose_name='题干内容')
     solution = models.TextField(blank=True, verbose_name='解题过程')
     correct_answer = models.TextField(blank=True, verbose_name='正确答案')
