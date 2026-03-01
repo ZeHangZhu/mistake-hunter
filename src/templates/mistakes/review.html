@@ -144,19 +144,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 <style>
     .img-container {
-        max-width: 100%;
-        height: 400px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        max-width: 66.67%;
+        max-height: 50vh;
+        display: inline-block;
         border: 1px solid #ddd;
         border-radius: 4px;
         overflow: hidden;
     }
     .img-container img {
+        display: block;
         max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
+        height: auto;
     }
     /* 弹出窗口样式 */
     .modal {
@@ -237,9 +235,12 @@
                             aspectRatio: NaN,
                             viewMode: 1,
                             dragMode: 'move',
-                            autoCropArea: 1,
+                            autoCropArea: 0.8, // 初始裁剪区域为图片的80%，距离边界有一定距离
                             cropBoxMovable: true,
-                            cropBoxResizable: true
+                            cropBoxResizable: true,
+                            responsive: true, // 响应式调整
+                            restore: true, // 恢复图片原始状态
+                            checkCrossOrigin: false
                         });
                     }, 100);
                 };

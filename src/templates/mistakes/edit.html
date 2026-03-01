@@ -6,19 +6,17 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 <style>
     .img-container {
-        max-width: 100%;
-        height: 400px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        max-width: 66.67%;
+        max-height: 50vh;
+        display: inline-block;
         border: 1px solid #ddd;
         border-radius: 4px;
         overflow: hidden;
     }
     .img-container img {
+        display: block;
         max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
+        height: auto;
     }
     .img-preview {
         width: 100px;
@@ -98,8 +96,8 @@
             {% csrf_token %}
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">题目标题 <span style="color: red;">*</span></label>
-                    <input type="text" name="title" class="form-control" value="{{ mistake.title }}" required>
+                    <label class="form-label">题目标题</label>
+                    <input type="text" name="title" class="form-control" value="{{ mistake.title }}">
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">学科 <span style="color: red;">*</span></label>
@@ -365,7 +363,10 @@
                             aspectRatio: NaN,
                             viewMode: 3,
                             preview: '.img-preview',
-                            autoCropArea: 1.0 // 初始裁剪区域为整个图片
+                            autoCropArea: 0.8, // 初始裁剪区域为图片的80%，距离边界有一定距离
+                            responsive: true, // 响应式调整
+                            restore: true, // 恢复图片原始状态
+                            checkCrossOrigin: false
                         });
                     };
                     reader.readAsDataURL(files[0]);
@@ -440,7 +441,10 @@
                             aspectRatio: NaN,
                             viewMode: 3,
                             preview: '.img-preview',
-                            autoCropArea: 1.0 // 初始裁剪区域为整个图片
+                            autoCropArea: 0.8, // 初始裁剪区域为图片的80%，距离边界有一定距离
+                            responsive: true, // 响应式调整
+                            restore: true, // 恢复图片原始状态
+                            checkCrossOrigin: false
                         });
                     };
                     reader.readAsDataURL(originalFileVar);
