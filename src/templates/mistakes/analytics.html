@@ -281,15 +281,6 @@ async function analyzeMistakes() {
     aiResponse.innerHTML = '';
     
     try {
-        const createConvResponse = await fetch('/ai/chat/conversations/create/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        const conversationData = await createConvResponse.json();
-        const conversationId = conversationData.id;
-        
         let statsMessage = '';
         
         if (errorCauseData.length > 0) {
@@ -326,14 +317,13 @@ async function analyzeMistakes() {
         
         const analysisMessage = `请帮我提一点学习建议:${statsMessage || ' 暂无统计数据'}`;
         
-        const response = await fetch('/ai/chat/chat-stream/', {
+        const response = await fetch('/ai/chat/analyze-stream/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                message: analysisMessage,
-                conversation_id: conversationId
+                message: analysisMessage
             })
         });
 

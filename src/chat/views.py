@@ -178,3 +178,48 @@ def get_recent_mistakes(request):
         return JsonResponse({'mistakes': data})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def analyze_stream(request):
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        analysis_message = data.get('message', '')
+
+        if not analysis_message:
+            return JsonResponse({'error': '消息不能为空'}, status=400)
+
+        url = "https://spark-api-open.xf-yun.com/v1/chat/completions"
+        payload = {
+            "max_tokens": 4096,
+            "top_k": 4,
+            "temperature": 0.5,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": analysis_message
+                }
+            ],
+            "model": "lite",
+            "stream": True
+        }
+        headers = {
+            "Authorization": f"Bearer {API_KEY}"
+        }
+
+        def generate():
+            response = requests.post(url, headers=headers, json=payload, stream=True)
+            response.encoding = "utf-8"
+            
+            for line in response.iter_lines(decode_unicode="utf-8"):
+                if line:
+                    if line.startswith('data: '):
+                        yield line + '\n'
+                    else:
+                        yield f'data: {line}\n'
+
+        return StreamingHttpResponse(generate(), content_type='text/event-stream')
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
