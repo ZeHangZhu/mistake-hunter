@@ -656,6 +656,14 @@ def generate_review_plan_view(request):
                     if mistake not in daily_plan:
                         daily_plan.append(mistake)
             
+            # 为每道题添加今日是否已复习的标记
+            today = timezone.now().date()
+            for mistake in daily_plan:
+                mistake.reviewed_today = (
+                    mistake.last_reviewed_at and 
+                    mistake.last_reviewed_at.date() == today
+                )
+            
             context = {
                 'daily_plan': daily_plan,
                 'daily_limit': daily_limit,
@@ -751,6 +759,14 @@ def generate_review_plan_view(request):
                     break
                 if mistake not in daily_plan:
                     daily_plan.append(mistake)
+        
+        # 为每道题添加今日是否已复习的标记
+        today = timezone.now().date()
+        for mistake in daily_plan:
+            mistake.reviewed_today = (
+                mistake.last_reviewed_at and 
+                mistake.last_reviewed_at.date() == today
+            )
         
         context = {
             'daily_plan': daily_plan,

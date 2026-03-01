@@ -55,6 +55,9 @@
                                 <span class="badge bg-secondary">难度：{{ mistake.get_difficulty_display }}</span>
                                 <span class="badge bg-info">掌握程度：{{ mistake.get_mastery_level_display }}</span>
                                 <span class="badge bg-success">复习次数：{{ mistake.review_count }}</span>
+                                {% if mistake.reviewed_today %}
+                                <span class="badge bg-success">已复习</span>
+                                {% endif %}
                             </div>
                         </div>
                         <div>
