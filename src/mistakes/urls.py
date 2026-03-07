@@ -10,6 +10,7 @@ urlpatterns = [
     path('<int:pk>/review/', views.review_mistake_view, name='review_mistake'),
     path('review_plan/', views.generate_review_plan_view, name='review_plan'),
     path('review_plan', views.generate_review_plan_view, name='review_plan_no_slash'),
+    path('review_plan/export/', views.export_review_plan_doc, name='export_review_plan_doc'),
     path('review_records/', views.review_records_view, name='review_records'),
     path('subjects/', views.subject_list_view, name='subject_list'),
     path('subjects/create/', views.subject_create_view, name='subject_create'),

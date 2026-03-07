@@ -18,6 +18,9 @@
                     <input type="number" class="form-control" id="daily_limit" name="daily_limit" min="1" max="50" value="{{ default_daily_limit|default:10 }}">
                 </div>
                 <button type="submit" class="btn btn-primary">生成复习计划</button>
+                {% if daily_plan %}
+                <a href="{% url 'export_review_plan_doc' %}" class="btn btn-success ml-2">一键导出DOC</a>
+                {% endif %}
             </form>
         </div>
     </div>

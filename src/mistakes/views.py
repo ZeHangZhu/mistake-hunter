@@ -3,10 +3,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.conf import settings
+from django.http import HttpResponse
 from datetime import timedelta
 from .models import Mistake, Subject, Group, KnowledgePoint, MistakeImage, ReviewRecord, ReviewImage, PointsRecord
 from django.db.models import Q
 from WebITRTeach import FormulaRecognizer
+from docx import Document
+from docx.shared import Inches, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 import os
 import threading
 from PIL import Image, ImageEnhance, ImageOps
@@ -782,6 +786,221 @@ def generate_review_plan_view(request):
             'default_daily_limit': 10
         }
         return render(request, 'mistakes/review_plan.html', context)
+
+
+@login_required
+def export_review_plan_doc(request):
+    try:
+        # 获取用户设置的每日复习数量
+        try:
+            daily_limit = request.user.daily_review_limit
+        except Exception as e:
+            print(f"获取用户设置时出错: {e}")
+            daily_limit = 10
+        
+        # 收集所有待复习的题目
+        now = timezone.now()
+        all_mistakes = Mistake.objects.filter(
+            user=request.user
+        ).prefetch_related('images').order_by('next_review_at')
+        
+        # 最多获取每日限制的2倍
+        reviewable_mistakes = list(all_mistakes[:daily_limit * 2])
+        
+        # 计算每道题的优先级分数
+        prioritized_mistakes = []
+        for mistake in reviewable_mistakes:
+            priority_score = 0
+            
+            # 基于复习时间的优先级
+            days_overdue = (now - mistake.next_review_at).days
+            if days_overdue > 0:
+                priority_score += days_overdue * 10
+            else:
+                days_until_review = (mistake.next_review_at - now).days
+                priority_score += max(0, 20 - days_until_review * 2)
+            
+            # 基于掌握程度的优先级
+            if mistake.mastery_level == 'to_review':
+                priority_score += 50
+            
+            # 基于难度的优先级
+            priority_score += mistake.difficulty * 10
+            
+            # 基于复习次数的优先级
+            priority_score += (10 - min(mistake.review_count, 10)) * 5
+            
+            prioritized_mistakes.append((priority_score, mistake))
+        
+        # 按优先级分数排序
+        prioritized_mistakes.sort(reverse=True, key=lambda x: x[0])
+        
+        # 生成每日复习计划
+        daily_plan = []
+        subject_count = {}
+        knowledge_point_count = {}
+        
+        for score, mistake in prioritized_mistakes:
+            if len(daily_plan) >= daily_limit:
+                break
+            
+            # 检查学科均衡性
+            subject_name = mistake.subject.name
+            if subject_count.get(subject_name, 0) >= daily_limit // 3:
+                continue
+            
+            # 检查知识点均衡性
+            knowledge_points = mistake.knowledge_points.all()
+            kp_skip = False
+            for kp in knowledge_points:
+                if knowledge_point_count.get(kp.name, 0) >= 3:
+                    kp_skip = True
+                    break
+            if kp_skip:
+                continue
+            
+            daily_plan.append(mistake)
+            
+            # 更新计数
+            subject_count[subject_name] = subject_count.get(subject_name, 0) + 1
+            for kp in knowledge_points:
+                knowledge_point_count[kp.name] = knowledge_point_count.get(kp.name, 0) + 1
+        
+        # 如果计划不足，补充一些题目
+        if len(daily_plan) < daily_limit:
+            for score, mistake in prioritized_mistakes:
+                if len(daily_plan) >= daily_limit:
+                    break
+                if mistake not in daily_plan:
+                    daily_plan.append(mistake)
+        
+        # 创建DOC文档
+        doc = Document()
+        
+        # 设置文档默认字体为微软雅黑
+        style = doc.styles['Normal']
+        font = style.font
+        font.name = '微软雅黑'
+        
+        # 设置标题字体为微软雅黑
+        title_style = doc.styles['Heading 1']
+        title_font = title_style.font
+        title_font.name = '微软雅黑'
+        
+        # 添加标题
+        title = doc.add_heading('错题复习计划', 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        # 设置标题字体为微软雅黑
+        title_font = title.runs[0].font
+        title_font.name = '微软雅黑'
+        
+        # 添加日期
+        doc.add_paragraph(f'生成日期: {timezone.now().strftime("%Y-%m-%d %H:%M:%S")}')
+        doc.add_paragraph(f'复习题目数量: {len(daily_plan)}')
+        doc.add_paragraph()
+        
+        # 遍历题目，添加到文档
+        for i, mistake in enumerate(daily_plan, 1):
+            # 添加题目编号和标题
+            doc.add_heading(f'题目 {i}: {mistake.title}', level=1)
+            
+            # 添加题目信息
+            info_paragraph = doc.add_paragraph()
+            info_paragraph.add_run(f'学科: {mistake.subject.name} | ')
+            info_paragraph.add_run(f'难度: {mistake.get_difficulty_display()} | ')
+            info_paragraph.add_run(f'掌握程度: {mistake.get_mastery_level_display()} | ')
+            info_paragraph.add_run(f'复习次数: {mistake.review_count}')
+            
+            # 添加题目内容或图片
+            if mistake.images.all():
+                for img in mistake.images.all():
+                    # 构建图片的完整路径
+                    img_path = os.path.join(settings.MEDIA_ROOT, str(img.image))
+                    if os.path.exists(img_path):
+                        # 计算图片缩放参数
+                        from PIL import Image
+                        try:
+                            with Image.open(img_path) as img_obj:
+                                # 获取图片原始尺寸
+                                img_width, img_height = img_obj.size
+                                
+                                # 计算实际可用宽度（A4纸宽度210mm，减去左右页边距各25mm）
+                                # 210mm - 50mm = 160mm = 6.3英寸
+                                available_width = 6.3
+                                
+                                # 设置最大宽度限制（实际可用宽度的90%）
+                                max_width = available_width * 0.9  # 约5.67英寸
+                                
+                                # 设置最大高度限制（A4纸高度的1/3）
+                                max_height = 11.69 / 3  # 约3.9英寸
+                                
+                                # 计算图片的原始宽高比
+                                aspect_ratio = img_width / img_height
+                                
+                                # 计算基于宽度限制的缩放后尺寸
+                                scaled_width = max_width
+                                scaled_height = scaled_width / aspect_ratio
+                                
+                                # 检查高度是否超出限制
+                                if scaled_height > max_height:
+                                    scaled_height = max_height
+                                    scaled_width = scaled_height * aspect_ratio
+                                
+                                # 确保图片不会太小
+                                min_width = 2.5  # 最小宽度2.5英寸
+                                min_height = 1.5  # 最小高度1.5英寸
+                                
+                                if scaled_width < min_width:
+                                    scaled_width = min_width
+                                    scaled_height = scaled_width / aspect_ratio
+                                
+                                if scaled_height < min_height:
+                                    scaled_height = min_height
+                                    scaled_width = scaled_height * aspect_ratio
+                                
+                                # 再次检查宽度限制
+                                if scaled_width > max_width:
+                                    scaled_width = max_width
+                                    scaled_height = scaled_width / aspect_ratio
+                                
+                                # 再次检查高度限制
+                                if scaled_height > max_height:
+                                    scaled_height = max_height
+                                    scaled_width = scaled_height * aspect_ratio
+                                
+                                # 添加图片，使用计算出的宽度
+                                doc.add_picture(img_path, width=Inches(scaled_width))
+                        except Exception as e:
+                            print(f"处理图片时出错: {e}")
+                            # 出错时使用默认宽度
+                            doc.add_picture(img_path, width=Inches(5))
+                    else:
+                        doc.add_paragraph('图片路径不存在')
+            else:
+                doc.add_paragraph(mistake.content)
+            
+            # 留出做题空间
+            for _ in range(5):
+                doc.add_paragraph()
+        
+        # 保存文档到内存
+        import io
+        buffer = io.BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        
+        # 创建HTTP响应
+        response = HttpResponse(
+            buffer.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        response['Content-Disposition'] = f'attachment; filename="review_plan_{timezone.now().strftime("%Y%m%d_%H%M%S")}.docx"'
+        
+        return response
+    except Exception as e:
+        print(f"导出DOC时出错: {e}")
+        messages.error(request, '导出失败，请稍后重试')
+        return redirect('review_plan')
 
 
 @login_required
