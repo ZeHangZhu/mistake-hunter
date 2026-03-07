@@ -7,6 +7,7 @@ from django.conf import settings
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
+from django.http import JsonResponse
 from .models import User
 
 
@@ -70,12 +71,17 @@ def login_view(request):
         else:
             messages.error(request, '用户名/邮箱或密码错误')
 
+    # 如果是 AJAX 请求，返回 JSON 响应
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': False, 'message': '用户名/邮箱或密码错误'})
+    
+    # 否则返回登录页面
     return render(request, 'users/login.html', {'login_input': login_input})
 
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('dashboard')
 
 
 def forgot_password_view(request):
@@ -130,13 +136,19 @@ def reset_password_view(request, uidb64, token):
         return redirect('forgot_password')
 
 
-@login_required
 def dashboard_view(request):
-    total_mistakes = request.user.mistakes.count()
-    to_review = request.user.mistakes.filter(mastery_level='to_review').count()
-    mastered = request.user.mistakes.filter(mastery_level='mastered').count()
-    subject_count = request.user.subjects.count()
-    recent_mistakes = request.user.mistakes.all()[:5]
+    if request.user.is_authenticated:
+        total_mistakes = request.user.mistakes.count()
+        to_review = request.user.mistakes.filter(mastery_level='to_review').count()
+        mastered = request.user.mistakes.filter(mastery_level='mastered').count()
+        subject_count = request.user.subjects.count()
+        recent_mistakes = request.user.mistakes.all()[:5]
+    else:
+        total_mistakes = 0
+        to_review = 0
+        mastered = 0
+        subject_count = 0
+        recent_mistakes = []
     
     context = {
         'total_mistakes': total_mistakes,
