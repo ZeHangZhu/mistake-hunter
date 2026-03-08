@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -8,7 +8,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.http import JsonResponse
-from .models import User
+from .models import User, Class
+from mistakes.models import ReviewRecord
 
 
 def register_view(request):
@@ -20,6 +21,7 @@ def register_view(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
+        user_type = request.POST.get('user_type', 'student')
 
         if password != confirm_password:
             messages.error(request, '两次输入的密码不一致')
@@ -37,7 +39,8 @@ def register_view(request):
             username=username,
             email=email,
             password=password,
-            is_active=True
+            is_active=True,
+            user_type=user_type
         )
 
         messages.success(request, '注册成功，请登录')
@@ -67,7 +70,10 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect('dashboard')
+            if user.user_type == 'teacher':
+                return redirect('teacher_dashboard')
+            else:
+                return redirect('dashboard')
         else:
             messages.error(request, '用户名/邮箱或密码错误')
 
@@ -138,6 +144,9 @@ def reset_password_view(request, uidb64, token):
 
 def dashboard_view(request):
     if request.user.is_authenticated:
+        if request.user.user_type == 'teacher':
+            return redirect('teacher_dashboard')
+        
         total_mistakes = request.user.mistakes.count()
         to_review = request.user.mistakes.filter(mastery_level='to_review').count()
         mastered = request.user.mistakes.filter(mastery_level='mastered').count()
@@ -263,3 +272,145 @@ def announcement_detail_view(request, announcement_id):
         'markdown_content': markdown_content,
     }
     return render(request, 'announcement_detail.html', context)
+
+
+@login_required
+def teacher_dashboard_view(request):
+    if request.user.user_type != 'teacher':
+        messages.error(request, '您没有权限访问教师仪表盘')
+        return redirect('dashboard')
+    
+    classes = request.user.created_classes.all()
+    context = {
+        'classes': classes,
+    }
+    return render(request, 'users/teacher_dashboard.html', context)
+
+
+@login_required
+def create_class_view(request):
+    if request.user.user_type != 'teacher':
+        messages.error(request, '您没有权限创建班级')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        if name:
+            Class.objects.create(
+                name=name,
+                teacher=request.user
+            )
+            messages.success(request, '班级创建成功')
+            return redirect('teacher_dashboard')
+        else:
+            messages.error(request, '班级名称不能为空')
+    
+    return render(request, 'users/create_class.html')
+
+
+@login_required
+def class_list_view(request):
+    if request.user.user_type != 'teacher':
+        messages.error(request, '您没有权限访问班级列表')
+        return redirect('dashboard')
+    
+    classes = request.user.created_classes.all()
+    context = {
+        'classes': classes,
+    }
+    return render(request, 'users/class_list.html', context)
+
+
+@login_required
+def class_detail_view(request, class_id):
+    if request.user.user_type != 'teacher':
+        messages.error(request, '您没有权限访问班级详情')
+        return redirect('dashboard')
+    
+    class_obj = get_object_or_404(Class, id=class_id, teacher=request.user)
+    students = class_obj.students.all()
+    all_students = User.objects.filter(user_type='student')
+    
+    context = {
+        'class_obj': class_obj,
+        'students': students,
+        'all_students': all_students,
+    }
+    return render(request, 'users/class_detail.html', context)
+
+
+@login_required
+def assign_student_view(request, class_id):
+    if request.user.user_type != 'teacher':
+        messages.error(request, '您没有权限分配学生')
+        return redirect('dashboard')
+    
+    class_obj = get_object_or_404(Class, id=class_id, teacher=request.user)
+    
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        if student_id:
+            student = get_object_or_404(User, id=student_id, user_type='student')
+            class_obj.students.add(student)
+            messages.success(request, '学生分配成功')
+        else:
+            messages.error(request, '请选择学生')
+    
+    return redirect('class_detail', class_id=class_id)
+
+
+@login_required
+def student_review_plan_view(request, student_id):
+    if request.user.user_type != 'teacher':
+        messages.error(request, '您没有权限查看学生复习计划')
+        return redirect('dashboard')
+    
+    student = get_object_or_404(User, id=student_id, user_type='student')
+    mistakes = student.mistakes.filter(mastery_level='to_review').order_by('next_review_at')
+    
+    if request.method == 'POST':
+        mistake_id = request.POST.get('mistake_id')
+        next_review_at = request.POST.get('next_review_at')
+        if mistake_id and next_review_at:
+            mistake = get_object_or_404(Mistake, id=mistake_id, user=student)
+            mistake.next_review_at = next_review_at
+            mistake.save()
+            messages.success(request, '复习计划修改成功')
+    
+    context = {
+        'student': student,
+        'mistakes': mistakes,
+    }
+    return render(request, 'users/student_review_plan.html', context)
+
+
+@login_required
+def student_review_records_view(request, student_id):
+    if request.user.user_type != 'teacher':
+        messages.error(request, '您没有权限查看学生复习记录')
+        return redirect('dashboard')
+    
+    student = get_object_or_404(User, id=student_id, user_type='student')
+    review_records = ReviewRecord.objects.filter(mistake__user=student).order_by('-reviewed_at')
+    
+    context = {
+        'student': student,
+        'review_records': review_records,
+    }
+    return render(request, 'users/student_review_records.html', context)
+
+
+@login_required
+def student_points_view(request, student_id):
+    if request.user.user_type != 'teacher':
+        messages.error(request, '您没有权限查看学生积分')
+        return redirect('dashboard')
+    
+    student = get_object_or_404(User, id=student_id, user_type='student')
+    points_records = student.points_records.order_by('-created_at')
+    
+    context = {
+        'student': student,
+        'points_records': points_records,
+    }
+    return render(request, 'users/student_points.html', context)

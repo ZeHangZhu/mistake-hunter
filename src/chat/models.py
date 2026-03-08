@@ -1,8 +1,16 @@
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
 
 
 class Conversation(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='conversations',
+        verbose_name='用户',
+        default=1
+    )
     title = models.CharField(max_length=200, default='新对话')
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)

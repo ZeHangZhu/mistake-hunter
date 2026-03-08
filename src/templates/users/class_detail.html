@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ class_obj.name }} - 班级详情 - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ class_obj.name }} - 班级详情</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title">班级信息</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>班级名称：</strong>{{ class_obj.name }}</p>
+            <p><strong>创建时间：</strong>{{ class_obj.created_at|date:'Y-m-d H:i' }}</p>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title">分配学生</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'assign_student' class_obj.id %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="student_id">选择学生</label>
+                    <select name="student_id" id="student_id" class="form-control">
+                        {% for student in all_students %}
+                        {% if student not in students %}
+                        <option value="{{ student.id }}">{{ student.username }} ({{ student.email }})</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">分配学生</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">班级学生</h5>
+        </div>
+        <div class="card-body">
+            {% if students %}
+            <ul class="list-group">
+                {% for student in students %}
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>{{ student.username }} ({{ student.email }})</span>
+                        <div>
+                            <a href="{% url 'student_review_plan' student.id %}" class="btn btn-sm btn-success">复习计划</a>
+                            <a href="{% url 'student_review_records' student.id %}" class="btn btn-sm btn-info">复习记录</a>
+                            <a href="{% url 'student_points' student.id %}" class="btn btn-sm btn-warning">积分</a>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted">班级还没有学生</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

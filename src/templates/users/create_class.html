@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}创建班级 - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">创建班级</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">班级信息</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name">班级名称</label>
+                    <input type="text" name="name" id="name" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">创建班级</button>
+                <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary">返回</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

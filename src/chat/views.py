@@ -16,7 +16,9 @@ def index(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def get_conversations(request):
-    conversations = Conversation.objects.all()
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': '用户未登录'}, status=401)
+    conversations = Conversation.objects.filter(user=request.user)
     data = [
         {
             'id': conv.id,
@@ -32,7 +34,9 @@ def get_conversations(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_conversation(request):
-    conversation = Conversation.objects.create(title='新对话')
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': '用户未登录'}, status=401)
+    conversation = Conversation.objects.create(title='新对话', user=request.user)
     return JsonResponse({
         'id': conversation.id,
         'title': conversation.title,
@@ -44,8 +48,10 @@ def create_conversation(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def get_conversation_messages(request, conversation_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': '用户未登录'}, status=401)
     try:
-        conversation = Conversation.objects.get(id=conversation_id)
+        conversation = Conversation.objects.get(id=conversation_id, user=request.user)
         messages = conversation.messages.all()
         data = [
             {
@@ -62,8 +68,10 @@ def get_conversation_messages(request, conversation_id):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def delete_conversation(request, conversation_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': '用户未登录'}, status=401)
     try:
-        conversation = Conversation.objects.get(id=conversation_id)
+        conversation = Conversation.objects.get(id=conversation_id, user=request.user)
         conversation.delete()
         return JsonResponse({'success': True})
     except Conversation.DoesNotExist:
@@ -73,6 +81,8 @@ def delete_conversation(request, conversation_id):
 @csrf_exempt
 @require_http_methods(["POST"])
 def chat_stream(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': '用户未登录'}, status=401)
     try:
         data = json.loads(request.body.decode('utf-8'))
         user_message = data.get('message', '')
@@ -82,7 +92,7 @@ def chat_stream(request):
             return JsonResponse({'error': '请选择或创建对话'}, status=400)
 
         try:
-            conversation = Conversation.objects.get(id=conversation_id)
+            conversation = Conversation.objects.get(id=conversation_id, user=request.user)
         except Conversation.DoesNotExist:
             return JsonResponse({'error': '对话不存在'}, status=404)
 

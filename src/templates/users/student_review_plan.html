@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ student.username }} - 复习计划 - 错题猎手{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ student.username }} - 复习计划</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">待复习题目</h5>
+        </div>
+        <div class="card-body">
+            {% if mistakes %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>题目</th>
+                        <th>学科</th>
+                        <th>难度</th>
+                        <th>下次复习时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mistake in mistakes %}
+                    <tr>
+                        <td>{{ mistake.title }}</td>
+                        <td>{{ mistake.subject.name }}</td>
+                        <td>{{ mistake.get_difficulty_display }}</td>
+                        <td>{{ mistake.next_review_at|date:'Y-m-d H:i' }}</td>
+                        <td>
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="mistake_id" value="{{ mistake.id }}">
+                                <div class="input-group input-group-sm">
+                                    <input type="datetime-local" name="next_review_at" class="form-control" value="{{ mistake.next_review_at|date:'Y-m-d\\TH:i' }}" required>
+                                    <div class="input-group-append">
+                                        <button type="submit" class="btn btn-sm btn-primary">修改</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">该学生没有待复习的题目</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
