@@ -124,6 +124,22 @@
                 </div>
             </div>
             
+            <div class="mb-3">
+                <label class="form-label">解题过程</label>
+                <div class="mb-2">
+                    <input type="file" id="solutionImageInput" name="solution_image" accept="image/*" capture="camera" class="form-control">
+                </div>
+                <!-- 已裁剪图片显示区域 -->
+                <div id="solutionCroppedImageContainer" class="cropped-image-container" style="display: none;">
+                    <h6>已裁剪图片</h6>
+                    <img id="solutionCroppedImage" class="cropped-image" src="" alt="裁剪后的图片">
+                    <div class="mt-2">
+                        <button type="button" id="solutionRecropBtn" class="btn btn-sm btn-outline-primary">重新裁剪</button>
+                    </div>
+                </div>
+                <textarea name="solution" class="form-control" rows="4">{{ mistake.solution }}</textarea>
+            </div>
+            
             <!-- 裁剪弹出窗口 -->
             <div id="cropModal" class="modal">
                 <div class="modal-content">
@@ -196,27 +212,11 @@
                 </div>
             </div>
             
-            <div class="mb-3">
-                <label class="form-label">解题过程</label>
-                <div class="mb-2">
-                    <input type="file" id="solutionImageInput" name="solution_image" accept="image/*" capture="camera" class="form-control">
-                </div>
-                <!-- 已裁剪图片显示区域 -->
-                <div id="solutionCroppedImageContainer" class="cropped-image-container" style="display: none;">
-                    <h6>已裁剪图片</h6>
-                    <img id="solutionCroppedImage" class="cropped-image" src="" alt="裁剪后的图片">
-                    <div class="mt-2">
-                        <button type="button" id="solutionRecropBtn" class="btn btn-sm btn-outline-primary">重新裁剪</button>
-                    </div>
-                </div>
-                <textarea name="solution" class="form-control" rows="4">{{ mistake.solution }}</textarea>
-            </div>
-            
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">正确答案</label>
                     <div class="mb-2">
-                        <input type="file" id="correctAnswerImageInput" name="correct_answer_image" accept="image/*" capture="camera" class="form-control">
+                        <input type="file" id="correctAnswerImageInput" name="correct_answer_image" accept="image/*" capture="camera" class="form-control" style="display: none;">
                     </div>
                     <!-- 已裁剪图片显示区域 -->
                     <div id="correctAnswerCroppedImageContainer" class="cropped-image-container" style="display: none;">
@@ -231,7 +231,7 @@
                 <div class="col-md-6 mb-3">
                     <label class="form-label">我的答案</label>
                     <div class="mb-2">
-                        <input type="file" id="userAnswerImageInput" name="user_answer_image" accept="image/*" capture="camera" class="form-control">
+                        <input type="file" id="userAnswerImageInput" name="user_answer_image" accept="image/*" capture="camera" class="form-control" style="display: none;">
                     </div>
                     <!-- 已裁剪图片显示区域 -->
                     <div id="userAnswerCroppedImageContainer" class="cropped-image-container" style="display: none;">

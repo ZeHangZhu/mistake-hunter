@@ -174,6 +174,13 @@ class Mistake(models.Model):
 
 
 class MistakeImage(models.Model):
+    IMAGE_TYPE_CHOICES = [
+        ('content', '题干图片'),
+        ('solution', '解题过程图片'),
+        ('correct_answer', '正确答案图片'),
+        ('user_answer', '我的答案图片'),
+    ]
+    
     mistake = models.ForeignKey(
         Mistake,
         on_delete=models.CASCADE,
@@ -181,6 +188,12 @@ class MistakeImage(models.Model):
         verbose_name='所属错题'
     )
     image = models.ImageField(upload_to='mistake_images/', verbose_name='图片')
+    image_type = models.CharField(
+        max_length=20,
+        choices=IMAGE_TYPE_CHOICES,
+        default='content',
+        verbose_name='图片类型'
+    )
     ocr_text = models.TextField(blank=True, verbose_name='OCR识别文字')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
 
@@ -190,7 +203,7 @@ class MistakeImage(models.Model):
         verbose_name_plural = '错题图片'
 
     def __str__(self):
-        return f'{self.mistake.title} - 图片'
+        return f'{self.mistake.title} - {self.get_image_type_display()}'
 
 
 class ReviewRecord(models.Model):

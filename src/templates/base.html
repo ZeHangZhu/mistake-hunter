@@ -62,9 +62,14 @@
     <div class="container mt-4 {% block container_class %}{% endblock %}">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex justify-content-between align-items-center">
+                    <span>{{ message }}</span>
+                    <div>
+                        {% if message.tags == 'success' and message == '错题添加成功' %}
+                            <a href="{% url 'mistake_create' %}" class="btn btn-primary btn-sm me-2">继续添加</a>
+                        {% endif %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 </div>
             {% endfor %}
         {% endif %}

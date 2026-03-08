@@ -200,7 +200,8 @@ def mistake_create_view(request):
             image_file = request.FILES['image']
             mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
-                image=image_file
+                image=image_file,
+                image_type='content'
             )
             # 创建后台线程处理OCR识别
             thread = threading.Thread(
@@ -215,7 +216,8 @@ def mistake_create_view(request):
             solution_image_file = request.FILES['solution_image']
             mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
-                image=solution_image_file
+                image=solution_image_file,
+                image_type='solution'
             )
             # 创建后台线程处理OCR识别
             thread = threading.Thread(
@@ -230,7 +232,8 @@ def mistake_create_view(request):
             correct_answer_image_file = request.FILES['correct_answer_image']
             mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
-                image=correct_answer_image_file
+                image=correct_answer_image_file,
+                image_type='correct_answer'
             )
             # 创建后台线程处理OCR识别
             thread = threading.Thread(
@@ -245,7 +248,8 @@ def mistake_create_view(request):
             user_answer_image_file = request.FILES['user_answer_image']
             mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
-                image=user_answer_image_file
+                image=user_answer_image_file,
+                image_type='user_answer'
             )
             # 创建后台线程处理OCR识别
             thread = threading.Thread(
@@ -296,13 +300,14 @@ def mistake_edit_view(request, pk):
         
         # 处理图片上传
         if 'image' in request.FILES:
-            # 删除旧图片
-            mistake.images.all().delete()
+            # 删除旧的题干图片
+            mistake.images.filter(image_type='content').delete()
             # 添加新图片
             image_file = request.FILES['image']
             mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
-                image=image_file
+                image=image_file,
+                image_type='content'
             )
             # 创建后台线程处理OCR识别
             thread = threading.Thread(
@@ -314,11 +319,14 @@ def mistake_edit_view(request, pk):
         
         # 处理解题过程图片上传
         if 'solution_image' in request.FILES:
+            # 删除旧的解题过程图片
+            mistake.images.filter(image_type='solution').delete()
             # 添加新图片
             solution_image_file = request.FILES['solution_image']
             mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
-                image=solution_image_file
+                image=solution_image_file,
+                image_type='solution'
             )
             # 创建后台线程处理OCR识别
             thread = threading.Thread(
@@ -330,11 +338,14 @@ def mistake_edit_view(request, pk):
         
         # 处理正确答案图片上传
         if 'correct_answer_image' in request.FILES:
+            # 删除旧的正确答案图片
+            mistake.images.filter(image_type='correct_answer').delete()
             # 添加新图片
             correct_answer_image_file = request.FILES['correct_answer_image']
             mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
-                image=correct_answer_image_file
+                image=correct_answer_image_file,
+                image_type='correct_answer'
             )
             # 创建后台线程处理OCR识别
             thread = threading.Thread(
@@ -346,11 +357,14 @@ def mistake_edit_view(request, pk):
         
         # 处理我的答案图片上传
         if 'user_answer_image' in request.FILES:
+            # 删除旧的我的答案图片
+            mistake.images.filter(image_type='user_answer').delete()
             # 添加新图片
             user_answer_image_file = request.FILES['user_answer_image']
             mistake_image = MistakeImage.objects.create(
                 mistake=mistake,
-                image=user_answer_image_file
+                image=user_answer_image_file,
+                image_type='user_answer'
             )
             # 创建后台线程处理OCR识别
             thread = threading.Thread(
@@ -362,6 +376,10 @@ def mistake_edit_view(request, pk):
             # 确保content字段不为空
             if not mistake.content:
                 mistake.content = '图片题目'
+        
+        # 确保content字段不为空
+        if not mistake.content:
+            mistake.content = '图片题目'
         
         mistake.knowledge_points.set(knowledge_point_ids)
         mistake.save()
@@ -384,8 +402,6 @@ def mistake_delete_view(request, pk):
         # Delete related records from tables that might have foreign key constraints
         from django.db import connection
         with connection.cursor() as cursor:
-            # Delete similar problems
-            cursor.execute("DELETE FROM similar_problems WHERE original_mistake_id = %s", [pk])
             # Delete review plans
             cursor.execute("DELETE FROM review_plans WHERE mistake_id = %s", [pk])
             # Delete socratic sessions

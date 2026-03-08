@@ -38,22 +38,22 @@
 </style>
 
 <script>
-    // 在打印前隐藏包含"图片题目"的p标签
+    // 在打印前隐藏包含"图片题目"的元素
     window.addEventListener('beforeprint', function() {
-        const paragraphs = document.querySelectorAll('p');
-        paragraphs.forEach(function(p) {
-            if (p.textContent.includes('图片题目')) {
-                p.style.display = 'none';
+        const elements = document.querySelectorAll('div, span, p');
+        elements.forEach(function(el) {
+            if (el.textContent.includes('图片题目')) {
+                el.style.display = 'none';
             }
         });
     });
     
     // 在打印后恢复显示
     window.addEventListener('afterprint', function() {
-        const paragraphs = document.querySelectorAll('p');
-        paragraphs.forEach(function(p) {
-            if (p.textContent.includes('图片题目')) {
-                p.style.display = '';
+        const elements = document.querySelectorAll('div, span, p');
+        elements.forEach(function(el) {
+            if (el.textContent.includes('图片题目')) {
+                el.style.display = '';
             }
         });
     });
@@ -70,7 +70,7 @@
     </div>
     <div class="card-body">
         {% if mistake.content != '图片题目' %}
-        <p>{{ mistake.content|linebreaks }}</p>
+        <!-- {{ mistake.content|linebreaks }} -->
         {% endif %}
         {% if mistake.images.exists %}
         <div class="mt-3">
@@ -205,6 +205,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // 隐藏带有trae-browser-inspect-draggable类的p标签
+        var draggablePs = document.querySelectorAll('p.trae-browser-inspect-draggable');
+        draggablePs.forEach(function(p) {
+            p.style.display = 'none';
+        });
         // 复习笔记图片处理
         var notesImageInput = document.getElementById('notesImageInput');
         var notesModal = document.getElementById('notesCropModal');
