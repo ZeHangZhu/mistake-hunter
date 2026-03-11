@@ -9,7 +9,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.http import JsonResponse
 from .models import User, Class
-from mistakes.models import ReviewRecord
+from mistakes.models import ReviewRecord, Mistake
 
 
 def register_view(request):
@@ -357,6 +357,41 @@ def assign_student_view(request, class_id):
             messages.error(request, '请选择学生')
     
     return redirect('class_detail', class_id=class_id)
+
+
+@login_required
+def remove_student_view(request, class_id, student_id):
+    if request.user.user_type != 'teacher':
+        messages.error(request, '您没有权限移除学生')
+        return redirect('dashboard')
+    
+    class_obj = get_object_or_404(Class, id=class_id, teacher=request.user)
+    student = get_object_or_404(User, id=student_id, user_type='student')
+    
+    if request.method == 'POST':
+        class_obj.students.remove(student)
+        messages.success(request, '学生移除成功')
+    
+    return redirect('class_detail', class_id=class_id)
+
+
+@login_required
+def delete_class_view(request, class_id):
+    if request.user.user_type != 'teacher':
+        messages.error(request, '您没有权限删除班级')
+        return redirect('dashboard')
+    
+    class_obj = get_object_or_404(Class, id=class_id, teacher=request.user)
+    
+    if request.method == 'POST':
+        class_obj.delete()
+        messages.success(request, '班级删除成功')
+        return redirect('class_list')
+    
+    context = {
+        'class_obj': class_obj,
+    }
+    return render(request, 'users/delete_class.html', context)
 
 
 @login_required

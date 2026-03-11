@@ -15,6 +15,8 @@ urlpatterns = [
     path('teacher/class-list/', views.class_list_view, name='class_list'),
     path('teacher/class/<int:class_id>/', views.class_detail_view, name='class_detail'),
     path('teacher/class/<int:class_id>/assign-student/', views.assign_student_view, name='assign_student'),
+    path('teacher/class/<int:class_id>/remove-student/<int:student_id>/', views.remove_student_view, name='remove_student'),
+    path('teacher/class/<int:class_id>/delete/', views.delete_class_view, name='delete_class'),
     # 学生管理路由
     path('teacher/student/<int:student_id>/review-plan/', views.student_review_plan_view, name='student_review_plan'),
     path('teacher/student/<int:student_id>/review-records/', views.student_review_records_view, name='student_review_records'),
