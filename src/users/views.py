@@ -13,9 +13,15 @@ from mistakes.models import ReviewRecord, Mistake
 
 
 def register_view(request):
+    """用户注册视图
+    
+    处理用户注册请求，验证表单数据并创建新用户
+    """
+    # 如果用户已登录，重定向到仪表盘
     if request.user.is_authenticated:
         return redirect('dashboard')
     
+    # 处理POST请求
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
@@ -23,18 +29,22 @@ def register_view(request):
         confirm_password = request.POST.get('confirm_password')
         user_type = request.POST.get('user_type', 'student')
 
+        # 验证密码是否一致
         if password != confirm_password:
             messages.error(request, '两次输入的密码不一致')
             return render(request, 'users/register.html')
 
+        # 验证用户名是否已存在
         if User.objects.filter(username=username).exists():
             messages.error(request, '用户名已存在')
             return render(request, 'users/register.html')
 
+        # 验证邮箱是否已注册
         if User.objects.filter(email=email).exists():
             messages.error(request, '邮箱已被注册')
             return render(request, 'users/register.html')
 
+        # 创建新用户
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -43,22 +53,31 @@ def register_view(request):
             user_type=user_type
         )
 
+        # 注册成功，重定向到登录页面
         messages.success(request, '注册成功，请登录')
         return redirect('login')
 
+    # 处理GET请求，返回注册页面
     return render(request, 'users/register.html')
 
 
 def login_view(request):
+    """用户登录视图
+    
+    处理用户登录请求，支持用户名或邮箱登录
+    """
+    # 如果用户已登录，重定向到仪表盘
     if request.user.is_authenticated:
         return redirect('dashboard')
     
     login_input = ''
+    # 处理POST请求
     if request.method == 'POST':
         login_input = request.POST.get('login')
         password = request.POST.get('password')
 
         user = None
+        # 判断是邮箱还是用户名登录
         if '@' in login_input:
             try:
                 user = User.objects.get(email=login_input)
@@ -68,8 +87,10 @@ def login_view(request):
         else:
             user = authenticate(request, username=login_input, password=password)
 
+        # 登录成功
         if user is not None:
             login(request, user)
+            # 根据用户类型重定向到不同的仪表盘
             if user.user_type == 'teacher':
                 return redirect('teacher_dashboard')
             else:
@@ -77,7 +98,7 @@ def login_view(request):
         else:
             messages.error(request, '用户名/邮箱或密码错误')
 
-    # 如果是 AJAX 请求，返回 JSON 响应
+    # 如果是AJAX请求，返回JSON响应
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': False, 'message': '用户名/邮箱或密码错误'})
     
@@ -86,20 +107,32 @@ def login_view(request):
 
 
 def logout_view(request):
+    """用户登出视图
+    
+    处理用户登出请求
+    """
     logout(request)
     return redirect('dashboard')
 
 
 def forgot_password_view(request):
+    """忘记密码视图
+    
+    处理用户忘记密码请求，发送密码重置邮件
+    """
+    # 处理POST请求
     if request.method == 'POST':
         email = request.POST.get('email')
         try:
             user = User.objects.get(email=email)
+            # 生成密码重置令牌
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             
+            # 构建重置密码链接
             reset_url = request.build_absolute_uri(f'/reset-password/{uid}/{token}/')
             
+            # 发送密码重置邮件
             send_mail(
                 '密码重置',
                 f'请点击以下链接重置密码：{reset_url}',
@@ -112,30 +145,41 @@ def forgot_password_view(request):
         except User.DoesNotExist:
             messages.error(request, '该邮箱未注册')
 
+    # 返回忘记密码页面
     return render(request, 'users/forgot_password.html')
 
 
 def reset_password_view(request, uidb64, token):
+    """重置密码视图
+    
+    处理用户密码重置请求
+    """
     try:
+        # 解码用户ID
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
+    # 验证令牌是否有效
     if user is not None and default_token_generator.check_token(user, token):
+        # 处理POST请求
         if request.method == 'POST':
             password = request.POST.get('password')
             confirm_password = request.POST.get('confirm_password')
 
+            # 验证密码是否一致
             if password != confirm_password:
                 messages.error(request, '两次输入的密码不一致')
                 return render(request, 'users/reset_password.html')
 
+            # 设置新密码
             user.set_password(password)
             user.save()
             messages.success(request, '密码重置成功，请登录')
             return redirect('login')
 
+        # 返回重置密码页面
         return render(request, 'users/reset_password.html')
     else:
         messages.error(request, '重置链接无效或已过期')
@@ -143,22 +187,30 @@ def reset_password_view(request, uidb64, token):
 
 
 def dashboard_view(request):
+    """仪表盘视图
+    
+    显示用户的错题统计和最近错题
+    """
     if request.user.is_authenticated:
+        # 教师用户重定向到教师仪表盘
         if request.user.user_type == 'teacher':
             return redirect('teacher_dashboard')
         
+        # 计算学生用户的错题统计
         total_mistakes = request.user.mistakes.count()
         to_review = request.user.mistakes.filter(mastery_level='to_review').count()
         mastered = request.user.mistakes.filter(mastery_level='mastered').count()
         subject_count = request.user.subjects.count()
         recent_mistakes = request.user.mistakes.all()[:5]
     else:
+        # 未登录用户的默认值
         total_mistakes = 0
         to_review = 0
         mastered = 0
         subject_count = 0
         recent_mistakes = []
     
+    # 构建上下文
     context = {
         'total_mistakes': total_mistakes,
         'to_review': to_review,
@@ -171,6 +223,10 @@ def dashboard_view(request):
 
 @login_required
 def announcement_detail_view(request, announcement_id):
+    """公告详情视图
+    
+    显示系统公告的详细内容
+    """
     # 直接返回固定的markdown内容，避免文件读取问题
     if announcement_id == 1:
         markdown_content = '''# 系统更新公告
@@ -267,6 +323,7 @@ def announcement_detail_view(request, announcement_id):
     else:
         markdown_content = '# 公告不存在'
     
+    # 构建上下文
     context = {
         'announcement_id': announcement_id,
         'markdown_content': markdown_content,
@@ -276,10 +333,16 @@ def announcement_detail_view(request, announcement_id):
 
 @login_required
 def teacher_dashboard_view(request):
+    """教师仪表盘视图
+    
+    显示教师创建的班级列表
+    """
+    # 验证用户是否为教师
     if request.user.user_type != 'teacher':
         messages.error(request, '您没有权限访问教师仪表盘')
         return redirect('dashboard')
     
+    # 获取教师创建的班级
     classes = request.user.created_classes.all()
     context = {
         'classes': classes,
@@ -289,13 +352,20 @@ def teacher_dashboard_view(request):
 
 @login_required
 def create_class_view(request):
+    """创建班级视图
+    
+    处理教师创建班级的请求
+    """
+    # 验证用户是否为教师
     if request.user.user_type != 'teacher':
         messages.error(request, '您没有权限创建班级')
         return redirect('dashboard')
     
+    # 处理POST请求
     if request.method == 'POST':
         name = request.POST.get('name')
         if name:
+            # 创建班级
             Class.objects.create(
                 name=name,
                 teacher=request.user
@@ -305,15 +375,22 @@ def create_class_view(request):
         else:
             messages.error(request, '班级名称不能为空')
     
+    # 返回创建班级页面
     return render(request, 'users/create_class.html')
 
 
 @login_required
 def class_list_view(request):
+    """班级列表视图
+    
+    显示教师创建的班级列表
+    """
+    # 验证用户是否为教师
     if request.user.user_type != 'teacher':
         messages.error(request, '您没有权限访问班级列表')
         return redirect('dashboard')
     
+    # 获取教师创建的班级
     classes = request.user.created_classes.all()
     context = {
         'classes': classes,
@@ -323,12 +400,20 @@ def class_list_view(request):
 
 @login_required
 def class_detail_view(request, class_id):
+    """班级详情视图
+    
+    显示班级详情和学生列表
+    """
+    # 验证用户是否为教师
     if request.user.user_type != 'teacher':
         messages.error(request, '您没有权限访问班级详情')
         return redirect('dashboard')
     
+    # 获取班级对象
     class_obj = get_object_or_404(Class, id=class_id, teacher=request.user)
+    # 获取班级学生
     students = class_obj.students.all()
+    # 获取所有学生
     all_students = User.objects.filter(user_type='student')
     
     context = {
@@ -341,49 +426,77 @@ def class_detail_view(request, class_id):
 
 @login_required
 def assign_student_view(request, class_id):
+    """分配学生视图
+    
+    处理教师分配学生到班级的请求
+    """
+    # 验证用户是否为教师
     if request.user.user_type != 'teacher':
         messages.error(request, '您没有权限分配学生')
         return redirect('dashboard')
     
+    # 获取班级对象
     class_obj = get_object_or_404(Class, id=class_id, teacher=request.user)
     
+    # 处理POST请求
     if request.method == 'POST':
         student_id = request.POST.get('student_id')
         if student_id:
+            # 获取学生对象
             student = get_object_or_404(User, id=student_id, user_type='student')
+            # 添加学生到班级
             class_obj.students.add(student)
             messages.success(request, '学生分配成功')
         else:
             messages.error(request, '请选择学生')
     
+    # 重定向到班级详情页面
     return redirect('class_detail', class_id=class_id)
 
 
 @login_required
 def remove_student_view(request, class_id, student_id):
+    """移除学生视图
+    
+    处理教师从班级移除学生的请求
+    """
+    # 验证用户是否为教师
     if request.user.user_type != 'teacher':
         messages.error(request, '您没有权限移除学生')
         return redirect('dashboard')
     
+    # 获取班级对象
     class_obj = get_object_or_404(Class, id=class_id, teacher=request.user)
+    # 获取学生对象
     student = get_object_or_404(User, id=student_id, user_type='student')
     
+    # 处理POST请求
     if request.method == 'POST':
+        # 从班级移除学生
         class_obj.students.remove(student)
         messages.success(request, '学生移除成功')
     
+    # 重定向到班级详情页面
     return redirect('class_detail', class_id=class_id)
 
 
 @login_required
 def delete_class_view(request, class_id):
+    """删除班级视图
+    
+    处理教师删除班级的请求
+    """
+    # 验证用户是否为教师
     if request.user.user_type != 'teacher':
         messages.error(request, '您没有权限删除班级')
         return redirect('dashboard')
     
+    # 获取班级对象
     class_obj = get_object_or_404(Class, id=class_id, teacher=request.user)
     
+    # 处理POST请求
     if request.method == 'POST':
+        # 删除班级
         class_obj.delete()
         messages.success(request, '班级删除成功')
         return redirect('class_list')
@@ -396,18 +509,28 @@ def delete_class_view(request, class_id):
 
 @login_required
 def student_review_plan_view(request, student_id):
+    """学生复习计划视图
+    
+    显示学生的复习计划并允许教师修改
+    """
+    # 验证用户是否为教师
     if request.user.user_type != 'teacher':
         messages.error(request, '您没有权限查看学生复习计划')
         return redirect('dashboard')
     
+    # 获取学生对象
     student = get_object_or_404(User, id=student_id, user_type='student')
+    # 获取学生待复习的错题
     mistakes = student.mistakes.filter(mastery_level='to_review').order_by('next_review_at')
     
+    # 处理POST请求
     if request.method == 'POST':
         mistake_id = request.POST.get('mistake_id')
         next_review_at = request.POST.get('next_review_at')
         if mistake_id and next_review_at:
+            # 获取错题对象
             mistake = get_object_or_404(Mistake, id=mistake_id, user=student)
+            # 更新下次复习时间
             mistake.next_review_at = next_review_at
             mistake.save()
             messages.success(request, '复习计划修改成功')
@@ -421,11 +544,18 @@ def student_review_plan_view(request, student_id):
 
 @login_required
 def student_review_records_view(request, student_id):
+    """学生复习记录视图
+    
+    显示学生的复习记录
+    """
+    # 验证用户是否为教师
     if request.user.user_type != 'teacher':
         messages.error(request, '您没有权限查看学生复习记录')
         return redirect('dashboard')
     
+    # 获取学生对象
     student = get_object_or_404(User, id=student_id, user_type='student')
+    # 获取学生的复习记录
     review_records = ReviewRecord.objects.filter(mistake__user=student).order_by('-reviewed_at')
     
     context = {
@@ -437,11 +567,18 @@ def student_review_records_view(request, student_id):
 
 @login_required
 def student_points_view(request, student_id):
+    """学生积分视图
+    
+    显示学生的积分记录
+    """
+    # 验证用户是否为教师
     if request.user.user_type != 'teacher':
         messages.error(request, '您没有权限查看学生积分')
         return redirect('dashboard')
     
+    # 获取学生对象
     student = get_object_or_404(User, id=student_id, user_type='student')
+    # 获取学生的积分记录
     points_records = student.points_records.order_by('-created_at')
     
     context = {

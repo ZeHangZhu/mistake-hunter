@@ -18,8 +18,14 @@ from PIL import Image, ImageEnhance, ImageOps
 
 @login_required
 def mistake_list_view(request):
+    """错题列表视图
+    
+    显示用户的所有错题，支持筛选、搜索和排序功能
+    """
+    # 获取当前用户的错题
     mistakes = Mistake.objects.filter(user=request.user)
     
+    # 获取筛选参数
     subject_id = request.GET.get('subject')
     group_id = request.GET.get('group')
     error_cause = request.GET.get('error_cause')
@@ -27,6 +33,7 @@ def mistake_list_view(request):
     search = request.GET.get('search')
     sort_by = request.GET.get('sort_by', '-created_at')
     
+    # 应用筛选条件
     if subject_id:
         mistakes = mistakes.filter(subject_id=subject_id)
     if group_id:
@@ -35,6 +42,7 @@ def mistake_list_view(request):
         mistakes = mistakes.filter(error_cause=error_cause)
     if mastery_level:
         mistakes = mistakes.filter(mastery_level=mastery_level)
+    # 搜索：支持标题、内容和知识点搜索
     if search:
         mistakes = mistakes.filter(
             Q(title__icontains=search) |
@@ -42,12 +50,15 @@ def mistake_list_view(request):
             Q(knowledge_points__name__icontains=search)
         ).distinct()
     
+    # 应用排序
     if sort_by in ['created_at', '-created_at', 'review_count', '-review_count', 'difficulty', '-difficulty']:
         mistakes = mistakes.order_by(sort_by)
     
+    # 获取用户的学科和分组用于筛选器
     subjects = Subject.objects.filter(user=request.user)
     groups = Group.objects.filter(user=request.user)
     
+    # 构建上下文
     context = {
         'mistakes': mistakes,
         'subjects': subjects,
@@ -58,7 +69,13 @@ def mistake_list_view(request):
 
 @login_required
 def mistake_detail_view(request, pk):
+    """错题详情视图
+    
+    显示单个错题的详细信息和复习记录
+    """
+    # 获取错题对象
     mistake = get_object_or_404(Mistake, pk=pk, user=request.user)
+    # 获取该错题的所有复习记录
     review_records = mistake.review_records.all()
     
     context = {
@@ -68,8 +85,11 @@ def mistake_detail_view(request, pk):
     return render(request, 'mistakes/detail.html', context)
 
 
-# 图像处理函数：黑白增强 + 裁剪
 def process_image(image_path):
+    """图像处理函数：黑白增强 + 裁剪
+    
+    对上传的题目图片进行预处理，提高OCR识别准确率
+    """
     try:
         # 打开图片
         img = Image.open(image_path)
@@ -86,7 +106,6 @@ def process_image(image_path):
         img_enhanced = enhancer.enhance(1.1)  # 增强亮度1.1倍
         
         # 裁剪图片：去除边缘空白
-        # 获取图像边界
         bbox = img_enhanced.getbbox()
         if bbox:
             img_cropped = img_enhanced.crop(bbox)
@@ -101,17 +120,21 @@ def process_image(image_path):
         print(f"图像处理失败: {e}")
         print(traceback.format_exc())
 
-# 初始化FormulaRecognizer
+# 初始化FormulaRecognizer，用于OCR文字识别
 APPID = "bd6d7a3c"
 APIKey = "ca854ccd4fa3c72a8ea1b0fbf3afac1c"
 Secret = "MTEzNjZlZDZhMTVjYTRiM2NiMmU3YzQz"
 recognizer = FormulaRecognizer(APPID, APIKey, Secret)
 
-# 后台线程处理OCR识别
+
 def process_ocr_in_background(mistake_image_id):
+    """后台线程处理OCR识别
+    
+    在后台线程中对题目图片进行OCR识别，更新数据库中的文字内容
+    """
     try:
         mistake_image = MistakeImage.objects.get(pk=mistake_image_id)
-        # 使用 Django 的 settings.MEDIA_ROOT 来构建正确的路径
+        # 使用Django的settings.MEDIA_ROOT来构建正确的路径
         image_path = os.path.join(settings.MEDIA_ROOT, str(mistake_image.image))
         
         print(f"开始处理OCR识别，图片路径: {image_path}")
@@ -133,13 +156,13 @@ def process_ocr_in_background(mistake_image_id):
             except Exception as e:
                 print(f"识别失败：{e}")
             
-            # 更新数据库
+            # 更新数据库中的OCR识别文字
             mistake_image.ocr_text = ocr_result
             mistake_image.save()
             
-            # 同时更新 Mistake 的 content 字段
+            # 同时更新Mistake的content字段
             mistake = mistake_image.mistake
-            # 只有当 content 为空或者是默认值时才更新
+            # 只有当content为空或者是默认值时才更新
             if not mistake.content or mistake.content == '图片题目':
                 mistake.content = ocr_result
                 mistake.save()
@@ -154,9 +177,16 @@ def process_ocr_in_background(mistake_image_id):
 
 @login_required
 def mistake_create_view(request):
+    """创建错题视图
+    
+    处理用户创建新错题的请求，支持图片上传和OCR识别
+    """
+    # 获取用户的所有学科
     subjects = Subject.objects.filter(user=request.user)
     
+    # 处理POST请求
     if request.method == 'POST':
+        # 获取表单数据
         title = request.POST.get('title')
         content = request.POST.get('content')
         solution = request.POST.get('solution')
@@ -170,6 +200,7 @@ def mistake_create_view(request):
         group_id = request.POST.get('group')
         knowledge_point_ids = request.POST.getlist('knowledge_points')
         
+        # 获取学科和分组对象
         subject = get_object_or_404(Subject, pk=subject_id, user=request.user)
         group = None
         if group_id:
@@ -179,6 +210,7 @@ def mistake_create_view(request):
         if not content and 'image' in request.FILES:
             content = '图片题目'
         
+        # 创建错题记录
         mistake = Mistake.objects.create(
             title=title,
             content=content,
@@ -195,7 +227,7 @@ def mistake_create_view(request):
             next_review_at=timezone.now() + timedelta(days=1)
         )
         
-        # 处理图片上传
+        # 处理题干图片上传
         if 'image' in request.FILES:
             image_file = request.FILES['image']
             mistake_image = MistakeImage.objects.create(
@@ -259,6 +291,7 @@ def mistake_create_view(request):
             thread.daemon = True
             thread.start()
         
+        # 关联知识点
         if knowledge_point_ids:
             mistake.knowledge_points.add(*knowledge_point_ids)
         
@@ -273,11 +306,20 @@ def mistake_create_view(request):
 
 @login_required
 def mistake_edit_view(request, pk):
+    """编辑错题视图
+    
+    处理用户编辑现有错题的请求，支持图片上传和OCR识别
+    """
+    # 获取要编辑的错题
     mistake = get_object_or_404(Mistake, pk=pk, user=request.user)
+    # 获取用户的所有学科
     subjects = Subject.objects.filter(user=request.user)
+    # 获取当前错题学科下的知识点
     knowledge_points = KnowledgePoint.objects.filter(subject=mistake.subject, user=request.user)
     
+    # 处理POST请求
     if request.method == 'POST':
+        # 更新错题基本信息
         mistake.title = request.POST.get('title')
         mistake.content = request.POST.get('content')
         mistake.solution = request.POST.get('solution')
@@ -288,6 +330,7 @@ def mistake_edit_view(request, pk):
         mistake.custom_error_cause = request.POST.get('custom_error_cause')
         mistake.difficulty = int(request.POST.get('difficulty'))
         
+        # 获取学科和分组
         subject_id = request.POST.get('subject')
         group_id = request.POST.get('group')
         knowledge_point_ids = request.POST.getlist('knowledge_points')
@@ -298,7 +341,7 @@ def mistake_edit_view(request, pk):
         else:
             mistake.group = None
         
-        # 处理图片上传
+        # 处理题干图片上传
         if 'image' in request.FILES:
             # 删除旧的题干图片
             mistake.images.filter(image_type='content').delete()
@@ -381,6 +424,7 @@ def mistake_edit_view(request, pk):
         if not mistake.content:
             mistake.content = '图片题目'
         
+        # 更新知识点关联
         mistake.knowledge_points.set(knowledge_point_ids)
         mistake.save()
         
@@ -397,15 +441,20 @@ def mistake_edit_view(request, pk):
 
 @login_required
 def mistake_delete_view(request, pk):
+    """删除错题视图
+    
+    处理用户删除错题的请求，级联删除相关记录
+    """
     mistake = get_object_or_404(Mistake, pk=pk, user=request.user)
     if request.method == 'POST':
-        # Delete related records from tables that might have foreign key constraints
+        # 删除可能存在的外键约束关联记录
         from django.db import connection
         with connection.cursor() as cursor:
-            # Delete review plans
+            # 删除复习计划
             cursor.execute("DELETE FROM review_plans WHERE mistake_id = %s", [pk])
-            # Delete socratic sessions
+            # 删除苏格拉底式辅导会话
             cursor.execute("DELETE FROM socratic_sessions WHERE mistake_id = %s", [pk])
+        # 删除错题
         mistake.delete()
         messages.success(request, '错题删除成功')
         return redirect('mistake_list')
@@ -414,6 +463,10 @@ def mistake_delete_view(request, pk):
 
 @login_required
 def subject_list_view(request):
+    """学科列表视图
+    
+    显示用户的所有学科，支持按默认顺序和首字母排序
+    """
     subjects = Subject.objects.filter(user=request.user)
     
     # 定义默认排序顺序
@@ -441,10 +494,15 @@ def subject_list_view(request):
 
 @login_required
 def subject_create_view(request):
+    """创建学科视图
+    
+    处理用户创建新学科的请求
+    """
     if request.method == 'POST':
         name = request.POST.get('name')
         color = request.POST.get('color', '#007bff')
         
+        # 检查学科是否已存在
         if Subject.objects.filter(name=name, user=request.user).exists():
             messages.error(request, '该学科已存在')
         else:
@@ -458,6 +516,7 @@ def subject_create_view(request):
                 # 其他学科按首字母排序，放在默认学科后面
                 order = len(default_order) + ord(name[0])
             
+            # 创建学科
             Subject.objects.create(name=name, color=color, user=request.user, order=order)
             messages.success(request, '学科添加成功')
             return redirect('subject_list')
@@ -467,6 +526,10 @@ def subject_create_view(request):
 
 @login_required
 def subject_delete_view(request, pk):
+    """删除学科视图
+    
+    处理用户删除学科的请求，如果学科下有错题则不允许删除
+    """
     subject = get_object_or_404(Subject, pk=pk, user=request.user)
     
     # 检查是否有错题关联
@@ -484,8 +547,13 @@ def subject_delete_view(request, pk):
 
 @login_required
 def review_mistake_view(request, pk):
+    """复习错题视图
+    
+    处理用户提交错题复习结果的请求，计算积分奖励
+    """
     mistake = get_object_or_404(Mistake, pk=pk, user=request.user)
     
+    # 处理POST请求
     if request.method == 'POST':
         result = request.POST.get('result')
         notes = request.POST.get('notes')
@@ -509,9 +577,11 @@ def review_mistake_view(request, pk):
             if os.path.exists(image_path):
                 process_image(image_path)
         
+        # 更新错题的复习信息
         mistake.review_count += 1
         mistake.last_reviewed_at = timezone.now()
         
+        # 根据复习结果更新掌握程度和下次复习时间
         if result == 'mastered':
             mistake.mastery_level = 'mastered'
             mistake.next_review_at = timezone.now() + timedelta(days=7)
@@ -583,6 +653,10 @@ def review_mistake_view(request, pk):
 
 @login_required
 def generate_review_plan_view(request):
+    """生成复习计划视图
+    
+    根据用户的错题情况，生成智能复习计划，考虑学科均衡性和知识点均衡性
+    """
     try:
         if request.method == 'POST':
             # 获取每日复习数量，设置默认值为10
@@ -806,6 +880,10 @@ def generate_review_plan_view(request):
 
 @login_required
 def export_review_plan_doc(request):
+    """导出复习计划文档视图
+    
+    将复习计划导出为Word文档格式
+    """
     try:
         # 获取用户设置的每日复习数量
         try:
@@ -941,11 +1019,10 @@ def export_review_plan_doc(request):
                                 img_width, img_height = img_obj.size
                                 
                                 # 计算实际可用宽度（A4纸宽度210mm，减去左右页边距各25mm）
-                                # 210mm - 50mm = 160mm = 6.3英寸
-                                available_width = 6.3
+                                available_width = 6.3  # 约5.67英寸
                                 
-                                # 设置最大宽度限制（实际可用宽度的90%）
-                                max_width = available_width * 0.9  # 约5.67英寸
+                                # 设置最大宽度限制
+                                max_width = available_width * 0.9
                                 
                                 # 设置最大高度限制（A4纸高度的1/3）
                                 max_height = 11.69 / 3  # 约3.9英寸
@@ -963,8 +1040,8 @@ def export_review_plan_doc(request):
                                     scaled_width = scaled_height * aspect_ratio
                                 
                                 # 确保图片不会太小
-                                min_width = 2.5  # 最小宽度2.5英寸
-                                min_height = 1.5  # 最小高度1.5英寸
+                                min_width = 2.5
+                                min_height = 1.5
                                 
                                 if scaled_width < min_width:
                                     scaled_width = min_width
@@ -1021,6 +1098,10 @@ def export_review_plan_doc(request):
 
 @login_required
 def review_records_view(request):
+    """复习记录列表视图
+    
+    显示用户的所有复习记录
+    """
     # 获取当前用户的所有复习记录，按复习时间倒序排列
     review_records = ReviewRecord.objects.filter(
         mistake__user=request.user
@@ -1034,6 +1115,10 @@ def review_records_view(request):
 
 @login_required
 def points_center_view(request):
+    """积分中心视图
+    
+    显示用户的积分统计和积分记录
+    """
     # 获取用户的积分记录，按创建时间倒序排列
     points_records = PointsRecord.objects.filter(
         user=request.user
@@ -1060,11 +1145,15 @@ def points_center_view(request):
 
 @login_required
 def analytics_view(request):
+    """数据分析视图
+    
+    显示用户的错题统计分析数据，包括错误原因分布、学科分布、错题趋势和知识点掌握情况
+    """
     from django.db import models
     from django.db.models import Count
     from datetime import timedelta
     
-    # 获取用户的所有错题，使用 select_related 优化查询
+    # 获取用户的所有错题，使用select_related优化查询
     mistakes = Mistake.objects.filter(user=request.user).select_related('subject')
     
     # 计算错误原因分布
@@ -1094,7 +1183,7 @@ def analytics_view(request):
         'counts': []
     }
     
-    # 生成最近 5 周的日期
+    # 生成最近5周的日期
     for i in range(4, -1, -1):
         start_date = now - timedelta(weeks=i)
         end_date = start_date + timedelta(weeks=1)
