@@ -8,6 +8,7 @@ from datetime import timedelta
 from .models import Mistake, Subject, Group, KnowledgePoint, MistakeImage, ReviewRecord, ReviewImage, PointsRecord
 from django.db.models import Q
 from WebITRTeach import FormulaRecognizer
+from config import OCR_APP_ID, OCR_API_KEY, OCR_SECRET
 from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -120,11 +121,8 @@ def process_image(image_path):
         print(f"图像处理失败: {e}")
         print(traceback.format_exc())
 
-# 初始化FormulaRecognizer，用于OCR文字识别
-APPID = "bd6d7a3c"
-APIKey = "ca854ccd4fa3c72a8ea1b0fbf3afac1c"
-Secret = "MTEzNjZlZDZhMTVjYTRiM2NiMmU3YzQz"
-recognizer = FormulaRecognizer(APPID, APIKey, Secret)
+# 初始化FormulaRecognizer，用于OCR文字识别（凭据从 config.json 读取）
+recognizer = FormulaRecognizer(OCR_APP_ID, OCR_API_KEY, OCR_SECRET)
 
 
 def process_ocr_in_background(mistake_image_id):
@@ -143,11 +141,7 @@ def process_ocr_in_background(mistake_image_id):
             # 先处理图片：黑白增强 + 裁剪
             process_image(image_path)
             
-            APPID = "bd6d7a3c"
-            APIKey = "ca854ccd4fa3c72a8ea1b0fbf3afac1c"
-            Secret = "MTEzNjZlZDZhMTVjYTRiM2NiMmU3YzQz"
-            
-            recognizer = FormulaRecognizer(APPID, APIKey, Secret)
+            recognizer = FormulaRecognizer(OCR_APP_ID, OCR_API_KEY, OCR_SECRET)
             
             try:
                 ocr_result = recognizer.recognize(image_path)

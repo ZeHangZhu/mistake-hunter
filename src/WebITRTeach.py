@@ -186,9 +186,12 @@ class FormulaRecognizer(object):
                     print(formula)
 
 if __name__ == '__main__':
-    APPID = "bd6d7a3c"
-    APIKey = "ca854ccd4fa3c72a8ea1b0fbf3afac1c"
-    Secret = "MTEzNjZlZDZhMTVjYTRiM2NiMmU3YzQz"
+    # 凭据从 config.json 读取，避免在源码中硬编码
+    from config import OCR_APP_ID, OCR_API_KEY, OCR_SECRET
+
+    APPID = OCR_APP_ID
+    APIKey = OCR_API_KEY
+    Secret = OCR_SECRET
     
     recognizer = FormulaRecognizer(APPID, APIKey, Secret)
     

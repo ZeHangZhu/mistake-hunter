@@ -1,0 +1,18 @@
+{
+  "server": {
+    "port": 80,
+    "allow_others": true,
+    "allowed_hosts": ["*"]
+  },
+  "api": {
+    "spark_api_key": "PASTE_YOUR_SPARK_API_KEY_HERE"
+  },
+  "ocr": {
+    "app_id": "PASTE_YOUR_XFYUN_APP_ID",
+    "api_key": "PASTE_YOUR_XFYUN_API_KEY",
+    "secret": "PASTE_YOUR_XFYUN_API_SECRET"
+  },
+  "django": {
+    "secret_key": "PASTE_A_RANDOM_SECRET_KEY"
+  }
+}
